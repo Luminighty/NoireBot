@@ -1,0 +1,57 @@
+;Comment line user ; to create comments!
+;The list starts with the backgrounds with this formula
+;Background name (No extension)
+;Cost (an int number)
+;When to switch to the overlays just create an "Overlays" line
+;Every file should be .png!
+hyperdimension01
+200
+hyperdimension02
+50
+hyperdimension03
+100
+hyperdimension04
+200
+hyperdimension05
+200
+hyperdimension06
+400
+magicka01
+100
+magicka02
+500
+magicka03
+50
+magicka04
+50
+pixel01
+10
+pixel02
+200
+pixel03
+500
+gaming01
+30
+gaming02
+100
+cartoons01
+50
+Emoji01
+100
+Emoji02
+100
+Emoji03
+100
+Empty
+0
+Overlays
+PlainWhite
+0
+PlainGreen
+0
+PlainBlue
+0
+PlainBlack
+0
+PlainRed
+0

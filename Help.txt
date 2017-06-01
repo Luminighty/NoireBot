@@ -1,0 +1,22 @@
+__***Syntax:***__ (You don't need the brackets!)
+[**Text**] - Your text
+{**A/B/C**} - Choose one/Optional
+
+**Commands:**
+`>help` - Sends this text.
+`>details` - Sends the version number and other statistics.
+**Others:**
+`>meme` - Sends a meme
+`>noire` - Sends a pic about noire
+**Profile:**
+`>profile` - Shows your profile
+	{**desc**} [*description text*] - Overwrite your description.
+	{**bg**} [*background name*] - Set your background.
+	{**overlay**} [*overlay name*] - Set your overlay.
+	{**points**} - Display your Points
+	{**@User**} - Shows that user's profile
+`>rep @User` - Give a reputation point to someone
+		{**+**} - Give a reputation point to someone
+		{**-**} - Take a reputation point from someone
+**RPG Game:**
+`>rpg help` for more information
