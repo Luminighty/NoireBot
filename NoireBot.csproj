@@ -11,6 +11,21 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -138,24 +153,63 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="cmd_Default.cs" />
+    <Compile Include="Commands\cmd_Default.cs" />
     <Compile Include="CommandHandler.cs" />
-    <Compile Include="Music.cs" />
-    <Compile Include="Profiles.cs" />
+    <Compile Include="Commands\Music.cs" />
+    <Compile Include="Commands\Profiles.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RPG.cs" />
+    <Compile Include="RPG\Classes.cs" />
+    <Compile Include="RPG\RPG.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="Consolas.ttf" />
     <None Include="packages.config" />
+    <None Include="RPG\Resources\Consolas.ttf" />
+    <None Include="RPG\Resources\FightScene.psd" />
+    <None Include="RPG\Resources\FightSceneNew.psd" />
+    <None Include="RPG\Resources\Monsters\Monsters.psd" />
+    <None Include="RPG\Resources\Monsters\newMonsters.psd" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Commands\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="icon.ico" />
+    <Content Include="RPG\Dungeon.txt" />
+    <Content Include="RPG\Resources\Background.png" />
+    <Content Include="RPG\Resources\Bars.png" />
+    <Content Include="RPG\Resources\GroupPositions.txt" />
+    <Content Include="RPG\Resources\guide.txt" />
+    <Content Include="RPG\Resources\HurtLayer0.png" />
+    <Content Include="RPG\Resources\HurtLayer1.png" />
+    <Content Include="RPG\Resources\Layout.png" />
+    <Content Include="RPG\Resources\Monsters\Slime\Hurt00.png" />
+    <Content Include="RPG\Resources\Monsters\Slime\Idle00.png" />
+    <Content Include="RPG\Resources\Monsters\Slime\Idle01.png" />
+    <Content Include="RPG\Resources\Skills\attack\0.png" />
+    <Content Include="RPG\Resources\Skills\attack\1.png" />
+    <Content Include="RPG\Resources\Skills\attack\2.png" />
+    <Content Include="RPG\Resources\Skills\attack\3.png" />
+    <Content Include="RPG\Resources\Skills\attack\4.png" />
+    <Content Include="RPG\Resources\Skills\attack\5.png" />
+    <Content Include="RPG\Resources\Skills\fireball\0.png" />
+    <Content Include="RPG\Resources\Skills\fireball\1.png" />
+    <Content Include="RPG\Resources\Skills\fireball\2.png" />
+    <Content Include="RPG\Resources\Skills\fireball\3.png" />
+    <Content Include="RPG\Resources\Skills\fireball\4.png" />
+    <Content Include="RPG\Resources\Skills\fireball\5.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.6.1 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

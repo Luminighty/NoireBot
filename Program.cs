@@ -6,6 +6,7 @@ using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
 using Discord.Audio;
+using NoireBot.Rpg;
 using System.Management;
 
 namespace NoireBot
