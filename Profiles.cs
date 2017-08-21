@@ -245,7 +245,7 @@ namespace NoireBot
             this.rand = new Random();
         }
 
-        public Profile(IUser user)
+        public Profile(IUser user, bool iswritefile = true)
         {
             Console.WriteLine("Creating new profile for: " + user.Username);
             this.id = user.Id;
@@ -257,7 +257,7 @@ namespace NoireBot
             this.owned_overlays = new List<string>();
             this.owned_backgrounds = new List<string>();
             this.rand = new Random();
-
+            this.tag = user.DiscriminatorValue;
             WriteFile();
         }
 

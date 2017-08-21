@@ -64,7 +64,15 @@ namespace NoireBot
         public async Task Meme()
         {
             string[] files = Directory.GetFiles("../../Meme/");
+            
             int i = rand.Next(files.Length);
+            int maxCount = 0;
+            while (Program.lastMemes.Contains<int>(i) && maxCount < 1000)
+            {
+                maxCount++;
+                i = rand.Next(files.Length);
+            }
+
             await Context.Channel.SendFileAsync(files[i]);
         }
 
@@ -82,15 +90,23 @@ namespace NoireBot
         }
 
         [Command("Zippy")]
-        public async Task Zippy(string args = "")
+        public async Task Zippy([Remainder]string args = "")
         {
             if (Context.Guild.Id != VofiServerID && Context.User.Id != Program.LumiID)
                 return;
+            if (Context.User.IsBot)
+                return;
+
             int lineCount = Program.Zippies.Count;
             int i = rand.Next(lineCount);
             bool alreadySent = false;
             bool skipRandomizer = false;
-
+            bool isTTS = false;
+            string[] splittedArgs = args.Split(' ');
+            if (splittedArgs[0].ToLower() == "tts")
+                isTTS = true;
+            if (isTTS)
+                args = args.Remove(0, Math.Min(4, args.Length));
 
             int x = 0;
             if (args != "")
@@ -105,30 +121,25 @@ namespace NoireBot
                         skipRandomizer = true;
 
                     }
-                }
-                if (args.ToLower() == "last")
+                } else if (args.ToLower() == "last")
                 {
                     var user = await Context.Guild.GetUserAsync(Context.User.Id);
                     if (user.GuildPermissions.Administrator)
                     {
                         skipRandomizer = true;
                         i = lineCount - 1;
-
                     }
                 }
-                else
-                {
-                    if (args != "")
+                else if (args != "")
                         for (int j = 0; j < Program.Zippies.Count; j++)
                         {
-                            if (Program.Zippies[j].Contains(args))
+                            if (Program.Zippies[j].ToLower().Contains(args.ToLower()))
                             {
                                 skipRandomizer = true;
                                 i = j;
                                 j = Program.Zippies.Count;
                             }
                         }
-                }
             }
             
             if (!skipRandomizer)
@@ -153,7 +164,7 @@ namespace NoireBot
             text = Program.Zippies[i];
             text = text.Replace("#&", Environment.NewLine);
             text = text.Replace("_", " ");
-            if (args.ToLower() == "tts")
+            if (isTTS)
             {
                 await Context.Channel.SendMessageAsync(text, true);
             }
@@ -162,9 +173,9 @@ namespace NoireBot
                 await ReplyAsync(text);
             }
         }
-
+        
         [Command("sendZippy")]
-        public async Task sendZippy(string text)
+        public async Task sendZippy([Remainder]string text)
         {
             if (Context.Guild.Id != VofiServerID && Context.User.Id != Program.LumiID)
                 return;
@@ -192,13 +203,19 @@ namespace NoireBot
         public async Task Autism(IGuildUser autist = null, [Remainder]string number = "")
         {
             var channel = await Context.User.CreateDMChannelAsync();
-            if (Context.Channel == channel && Context.User.Id != Program.LumiID)
+            if (Context.User.Id != Program.LumiID && Context.Channel == channel)
             {
                 IGuildUser user = Context.User as IGuildUser;
                 if (!user.GuildPermissions.Administrator)
                     return;
             }
-            await Context.Message.DeleteAsync();
+            try
+            {
+                await Context.Message.DeleteAsync();
+            } catch(Exception exc)
+            {
+                await Program.Log(new LogMessage(LogSeverity.Debug, "aut", "The bot couldn't delete the message!"));
+            }
             if (autist == null || number == "")
             {
                 await channel.SendMessageAsync("Usage: >autism @User point");

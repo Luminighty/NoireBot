@@ -15,7 +15,9 @@ namespace NoireBot
         {
             // Create Command Service, inject it into Dependency Map
             client = _map.Get<DiscordSocketClient>();
-            commands = new CommandService();
+            commands = new CommandService(new CommandServiceConfig() {
+                DefaultRunMode = RunMode.Async
+            });
             commands.Log += Program.Log;
 
             map = _map;

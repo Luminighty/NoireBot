@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
-
+using Discord.Audio;
+using System.Management;
 
 namespace NoireBot
 {
@@ -14,32 +15,64 @@ namespace NoireBot
 
         public static List<string> Zippies = new List<string>();
         public static int[] lastZippies = new int[20];
+        public static int[] lastMemes = new int[20];
         public static string help;
         public Random rand;
         public static RPG rpg;
         public static ulong LumiID = 128182611376996352;
-
+        public static ulong botID = 246933734010519552;
+        public static IAudioClient audClient;
 
         // Convert our sync main to an async main.
         public static void Main(string[] args) {
             try {
-                new Program().Start().GetAwaiter().GetResult();
+                new Program().Start(args).GetAwaiter().GetResult();
             } catch(Exception exc)
             {
+                Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine(exc);
                 Console.ReadKey();
-                Console.ForegroundColor = ConsoleColor.White;
             }
             }
         public static DiscordSocketClient client;
         private CommandHandler handler;
         
-
-        public async Task Start()
+        public void getArgs(string[] args)
         {
+            for(int i = 0; i < args.Length; i++)
+            {
+                switch(args[i])
+                {
+                    case "-admin":
+                        //set admin
+                        isAdmin = true;
+                        break;
+                    case "-game":
+                        if((i + 1) < args.Length)
+                        {
+                            StartingGame = args[i + 1];
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+
+        }
+
+        private string StartingGame = "";
+        private bool isAdmin = false;
+        private string lockKey = "";
+        private int tryKick = 0;
+
+        public async Task Start(string[] args)
+        {
+            lockKey = Environment.UserName + Environment.TickCount.ToString();
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
             Console.WriteLine(WelcomeImage());
             SendColorHelp();
+            getArgs(args);
             rand = new Random();
             // Define the DiscordSocketClient with a DiscordSocketConfig
             client = new DiscordSocketClient(new DiscordSocketConfig() {
@@ -53,9 +86,12 @@ namespace NoireBot
 
             var map = new DependencyMap();
             map.Add(client);
-
+            map.Add(new AudioService());
             handler = new CommandHandler();
             await handler.Install(map);
+
+            if(isAdmin)
+            await Log(new LogMessage(LogSeverity.Info, "Control", "Admin Detected"));
 
             LoadDatas();
 
@@ -66,9 +102,10 @@ namespace NoireBot
             client.Ready += Client_Ready;
 
             client.MessageReceived += Client_MessageReceived;
-            await Task.Delay(3000);
+            await Task.Delay(5000);
             SetGame();
             SaveData();
+            CheckLock();
             await Task.Delay(-1);
         }
 
@@ -83,6 +120,13 @@ namespace NoireBot
 
         private async void SetGame()
         {
+            if(StartingGame != "" && !string.IsNullOrEmpty(StartingGame))
+            {
+                await client.SetGameAsync(StartingGame);
+                await Task.Delay(3600000);
+                SetGame();
+                return;
+            }
                 int i = rand.Next(4);
                 switch (i)
                 {
@@ -103,17 +147,6 @@ namespace NoireBot
                         break;
                 }
                 await Task.Delay(3600000);
-                // Block this program until it is closed.
-
-                foreach (var guild in client.Guilds)
-                {
-                    foreach (var user in guild.Users)
-                    {
-                        int index = ProfileCommands.CheckUser(user);
-                        ProfileCommands.profiles[index].Point++;
-                        ProfileCommands.profiles[index].WriteFile();
-                    }
-                }
             SetGame();
 
         }
@@ -151,6 +184,36 @@ namespace NoireBot
             return Task.CompletedTask;
         }
         
+        private async void CheckLock()
+        {
+            if(File.Exists("../../Lock"))
+            {
+                StreamReader reader = new StreamReader("../../Lock");
+                string line = reader.ReadLine();
+                reader.Close();
+                if (line != lockKey)
+                {
+                    if (tryKick > 2)
+                        Environment.Exit(-1);
+                    if(!isAdmin)
+                        tryKick++;
+                    File.Delete("../../Lock");
+                } else
+                {
+                    await Task.Delay(6000);
+                    CheckLock();
+                    return;
+                }
+
+            }
+            StreamWriter writer = new StreamWriter("../../Lock");
+            writer.WriteLine(lockKey);
+            writer.Close();
+            await Task.Delay(6000);
+            CheckLock();
+
+        }
+
         // log the OAuth2 Invite URL of the bot on client ready so that user can see it on startup
         private async Task Client_Ready()
         {
@@ -187,8 +250,7 @@ namespace NoireBot
             Console.ForegroundColor = ConsoleColor.Gray;
             return Task.CompletedTask;
         }
-
-
+        
         public static void LoadHelp()
         {
             FileStream file = File.Open("../../Help.txt", FileMode.Open);

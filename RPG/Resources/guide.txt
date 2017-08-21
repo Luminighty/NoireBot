@@ -1,0 +1,19 @@
+`>rpg` - Returns the current state of the party
+
+**Default Commands:**
+	`>rpg nick` - Changes your nick name (Max 8 letters)
+	`>rpg help` - Sends you this.
+	
+**In Battle:**
+	`>rpg attack [ID]` - Attack the monster (You can see their ID over them)
+	`>rpg skill` - Lists your skills.
+	`>rpg skill [NAME] [ID]` - Attack the monster with a skill. (You can get the skill's NAME on the list)
+	`>rpg item` - Lists your items. (soon)
+	`>rpg run` - Run away from. (soon)
+
+**Party Commands:**
+	`>party invite @User` - Invite someone to your party.
+	`>party join` - Accept your last invitation.
+	`>party leave` - Leave your current party.
+
+Note: Usually there are shorter ways to type the commands. Example: `>rpg s fireball 3` is the same as `>rpg skill fireball 3`

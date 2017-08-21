@@ -2,7 +2,7 @@ Tatsumaki
 172002275412279296
 8792
 
-277
+559
 0
 Empty
 PlainBlack
