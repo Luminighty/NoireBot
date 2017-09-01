@@ -1,0 +1,169 @@
+Fireball
+Casts a fireball that hits your enemy!
+0
+5
+10
+False
+
+0
+0
+0
+0
+0
+2
+Poison Cloud
+Poison the enemies for 3 turns.
+1
+5
+0
+True
+Poison
+3
+5
+2
+0
+0
+2
+Weakness
+Weakens the enemy.
+3
+5
+0
+False
+Weakness
+0
+0
+0
+4
+-5
+2
+Heal
+Heals one of your ally by 10 health.
+0
+5
+-10
+False
+
+0
+0
+0
+0
+0
+0
+Revive
+Revives one of your fallen teammate.
+3
+15
+-99999
+False
+
+0
+0
+0
+0
+0
+1
+Lightning Bolt
+Shoots a lightning bolt that hits every enemy.
+5
+5
+5
+True
+
+0
+0
+0
+0
+0
+2
+Whirlwind
+Spins around hitting every enemy.
+3
+10
+8
+True
+
+0
+0
+0
+0
+0
+2
+Double Attack
+Hits your enemy with two attacks.
+1
+5
+15
+False
+
+0
+0
+0
+0
+0
+2
+Regenerate
+Heals one of your teammate overtime.
+3
+5
+0
+False
+Regenerate
+3
+-5
+1
+0
+0
+0
+Team Heal
+Heals all of your teammates!
+5
+10
+-10
+True
+
+0
+0
+0
+0
+0
+0
+Knockout
+Knocks one of your enemy, making them dizzy.
+1
+5
+5
+False
+
+3
+1
+1
+0
+0
+2
+Ground Strike
+Strikes the ground in front of you, hitting every enemy.
+2
+10
+5
+True
+
+0
+0
+0
+0
+0
+2
+Acid
+Spreads Acid on your foe. Burns their flesh really fast.
+5
+15
+3
+False
+
+3
+10
+2
+0
+0
+2

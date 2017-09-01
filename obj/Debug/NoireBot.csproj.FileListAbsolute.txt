@@ -83,3 +83,13 @@ C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\obj\Debug\NoireBot.csprojR
 C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\obj\Debug\NoireBot.exe
 C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\obj\Debug\NoireBot.pdb
 C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\bin\Debug\AnimatedGif.dll
+C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\obj\Debug\NoireBot.csproj.CoreCompileInputs.cache
+C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\obj\Debug\NoireBot.Properties.Resources.resources
+C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\obj\Debug\NoireBot.csproj.GenerateResource.Cache
+C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\bin\Debug\Discord.Net.Webhook.dll
+C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\bin\Debug\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\bin\Debug\Microsoft.Extensions.DependencyInjection.dll
+C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\bin\Debug\System.Xml.ReaderWriter.dll
+C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\bin\Debug\Discord.Net.Webhook.xml
+C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\bin\Debug\Microsoft.Extensions.DependencyInjection.xml
+C:\Users\Luminight\Dropbox\NoireBot\NoireBot\NoireBot\bin\Debug\Microsoft.Extensions.DependencyInjection.Abstractions.xml

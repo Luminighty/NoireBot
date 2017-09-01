@@ -1,0 +1,90 @@
+2
+Healing Potion
+Restores 20 HP.
+50
+2
+20
+0
+False
+-1
+2
+1-Up
+Revives one of your dead ally.
+100
+2
+99999
+0
+False
+-1
+2
+Refreshing Herb
+Cures Poison
+10
+0
+0
+0
+False
+2
+2
+Coffee
+Cures sleep
+10
+2
+0
+0
+False
+2
+2
+Small Healing Potion
+Restores 10 HP.
+30
+2
+10
+0
+False
+-1
+2
+Red Pepper
+Increases your strength for 3 turns.
+50
+4
+5
+3
+False
+-1
+2
+Blue Pepper
+Increases your inteligence for 3 turns.
+50
+4
+5
+3
+False
+-1
+2
+Small Mana Potion
+Restores 10 MP.
+35
+3
+10
+0
+False
+-1
+2
+Mana Potion
+Restores 20 MP.
+60
+3
+20
+0
+False
+-1
+2
+Power Up
+Pay to Win!\nFor those REALLY special ones.
+500
+7
+50
+0
+False
+-1

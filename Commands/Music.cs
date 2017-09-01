@@ -6,6 +6,8 @@ using Discord;
 using Discord.Audio;
 using Discord.Commands;
 using System.Threading;
+using System.Net;
+using System.Text;	
 
 namespace NoireBot
 {
@@ -43,7 +45,28 @@ namespace NoireBot
         [Command("play", RunMode = RunMode.Async)]
         public async Task PlayCmd([Remainder] string song)
         {
-            await _service.SendAudioAsync(Context.Guild, Context.Channel, song);
+			/*
+			string URL = song;
+			string Id = song;
+			URL = @"http://youtube.com/v/&#8221;" + Id;
+
+			WebRequest req = HttpWebRequest.Create(URL);
+			WebResponse res = req.GetResponse();
+
+			string realURL = res.ResponseUri.ToString();
+			HttpWebRequest httpReq = (HttpWebRequest)WebRequest.Create(realURL);
+			HttpWebResponse httpRes = (HttpWebResponse)httpReq.GetResponse();
+
+			Stream stream = httpRes.GetResponseStream();
+			Encoding encoding = Encoding.GetEncoding("utf-8");
+			StreamReader reader = new StreamReader(stream, encoding);
+
+			StreamWriter writer = new StreamWriter("../../Music/" + Context.Guild.Id + "current.mp3", true);
+			writer.Write(reader.ReadToEnd());
+			writer.Close();
+			*/
+			await _service.SendAudioAsync(Context.Guild, Context.Channel, song);/*
+			File.Delete("../../Music/" + Context.Guild.Id + "currnt.flv");*/
         }
 
         [Command("stop", RunMode = RunMode.Async)]

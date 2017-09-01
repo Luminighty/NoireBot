@@ -22,6 +22,7 @@ namespace NoireBot
         public static RPG rpg;
         public static ulong LumiID = 128182611376996352;
         public static ulong botID = 246933734010519552;
+        public static List<IMessageChannel> spamChannels = new List<IMessageChannel>();
         public static IAudioClient audClient;
 
         // Convert our sync main to an async main.
@@ -38,7 +39,7 @@ namespace NoireBot
         public static DiscordSocketClient client;
         private CommandHandler handler;
         
-        public void getArgs(string[] args)
+        public void GetArgs(string[] args)
         {
             for(int i = 0; i < args.Length; i++)
             {
@@ -73,7 +74,7 @@ namespace NoireBot
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
             Console.WriteLine(WelcomeImage());
             SendColorHelp();
-            getArgs(args);
+            GetArgs(args);
             rand = new Random();
             // Define the DiscordSocketClient with a DiscordSocketConfig
             client = new DiscordSocketClient(new DiscordSocketConfig() {

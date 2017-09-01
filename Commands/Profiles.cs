@@ -117,11 +117,13 @@ namespace NoireBot
         public static int CheckUser(IUser user)
         {
             int id = GetProfile(user.Id);
-            if (id == -1)
+			
+			if (id == -1)
             {
                 id = profiles.Count;
-                profiles.Add(new Profile(user));
+				profiles.Add(new Profile(user));
             }
+
             return id;
         }
 
@@ -134,18 +136,19 @@ namespace NoireBot
 
             foreach (string folder in folders)
             {
-                FileStream file = File.Open(folder + "/main.profile", FileMode.Open);
-                StreamReader reader = new StreamReader(file);
+                StreamReader reader = new StreamReader(folder + "/main.profile");
 
-                Profile newProf = new Profile();
-                newProf.Name = reader.ReadLine();
-                newProf.id = Convert.ToUInt64(reader.ReadLine());
-                newProf.tag = Convert.ToUInt16(reader.ReadLine());
-                newProf.desc = reader.ReadLine();
-                newProf.Point = Convert.ToInt16(reader.ReadLine());
-                newProf.rep = Convert.ToInt16(reader.ReadLine());
-                newProf.bg = reader.ReadLine();
-                newProf.overlay = reader.ReadLine();
+                Profile newProf = new Profile
+                {
+                    Name = reader.ReadLine(),
+                    id = Convert.ToUInt64(reader.ReadLine()),
+                    tag = Convert.ToUInt16(reader.ReadLine()),
+                    desc = reader.ReadLine(),
+                    Point = Convert.ToInt16(reader.ReadLine()),
+                    rep = Convert.ToInt16(reader.ReadLine()),
+                    bg = reader.ReadLine(),
+                    overlay = reader.ReadLine()
+                };
                 string bg = reader.ReadLine(); //bg start
                 int counter = 0;
                 while (bg != "}" && counter < 100)
@@ -167,7 +170,6 @@ namespace NoireBot
 
 
                 reader.Close();
-                file.Close();
                 profiles.Add(newProf);
             }
 
@@ -176,7 +178,7 @@ namespace NoireBot
 
         public static int GetProfile(ulong id)
         {
-            if (!isExists(id))
+            if (!IsExists(id))
                 return -1;
             for (int i = 0; i < profiles.Count; i++)
                 if (profiles[i].id == id)
@@ -184,7 +186,7 @@ namespace NoireBot
             return -1;
         }
 
-        public static bool isExists(ulong id)
+        public static bool IsExists(ulong id)
         {
             return Directory.Exists("../../Profiles/" + id);
         }
@@ -232,9 +234,9 @@ namespace NoireBot
 
     public class Profile
     {
-        public Profile()
+        public Profile(ulong _id = 0)
         {
-            this.id = 0;
+            this.id = _id;
             this.Name = "";
             this.desc = "";
             this.Point = 0;
@@ -246,9 +248,14 @@ namespace NoireBot
         }
 
         public Profile(IUser user, bool iswritefile = true)
-        {
-            Console.WriteLine("Creating new profile for: " + user.Username);
-            this.id = user.Id;
+		{
+			Program.Log(new LogMessage(LogSeverity.Debug, "Profiles", "New Profile(" + user.Username +")"));
+			if (Directory.Exists("../../Profiles/" + user.Id) && File.Exists("../../Profiles/" + user.Id + "/main.profile"))
+			{
+				Program.Log(new LogMessage(LogSeverity.Debug, "Profiles", "Folder already exists! (" + user.Id + ")"));
+				return;
+			}
+			this.id = user.Id;
             this.Name = user.Username;
             this.desc = "";
             this.Point = 0;
@@ -258,7 +265,8 @@ namespace NoireBot
             this.owned_backgrounds = new List<string>();
             this.rand = new Random();
             this.tag = user.DiscriminatorValue;
-            WriteFile();
+			if (iswritefile)
+				WriteFile();
         }
 
 
@@ -283,7 +291,9 @@ namespace NoireBot
         public DateTime LastRep;
 
         private Random rand;
-
+        /// <summary>
+        /// If it's already writing the profile then prevent another process from doing so;
+        /// </summary>
         #endregion
 
         public string GeneratePicture(int rank, IUser user)
@@ -311,9 +321,11 @@ namespace NoireBot
                     RectangleF descRect = new RectangleF(13F, 295F, 226F, 85F);
                     RectangleF Rank = new RectangleF(185, 185, 45, 30);
                     RectangleF Rep = new RectangleF(185, 235, 45, 30);
-                    StringFormat format = new StringFormat();
-                    format.Alignment = StringAlignment.Center;
-                    format.LineAlignment = StringAlignment.Center;
+                    StringFormat format = new StringFormat
+                    {
+                        Alignment = StringAlignment.Center,
+                        LineAlignment = StringAlignment.Center
+                    };
                     graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
                     Font SmallCooper = new Font("Cooper Std Black", 11);
                     graphics.DrawString(this.desc, SmallCooper, Brushes.Black, descRect);
@@ -451,31 +463,57 @@ namespace NoireBot
             profiles.Sort(delegate (Profile p1, Profile p2) { return (-1 * p1.Point).CompareTo((-1 * p2.Point)); });
         }
 
+		public static List<ulong> profileWritings = new List<ulong>();
+
+		bool alreadyWriting = false;
+
+		static List<ulong> writingIds = new List<ulong>();
+
         public void WriteFile()
         {
+			if (alreadyWriting) { 
+				Program.Log(new LogMessage(LogSeverity.Debug, "Profiles", "Already Writing"));
+				return;
+			}
+			if(writingIds.Contains(this.id))
+			{
+
+				Program.Log(new LogMessage(LogSeverity.Critical, "Profiles", "Duplicate detected! (" + this.id + ")"));
+				return;
+			}
+
+			writingIds.Add(this.id);
+			alreadyWriting = true;
             if (!Directory.Exists("../../Profiles/" + this.id))
                 Directory.CreateDirectory("../../Profiles/" + this.id);
-            FileStream file = File.Create("../../Profiles/" + this.id + "/main.profile");
-            StreamWriter writer = new StreamWriter(file);
-            writer.WriteLine(this.Name);
-            writer.WriteLine(this.id);
-            writer.WriteLine(this.tag);
-            writer.WriteLine(this.desc);
-            writer.WriteLine(this.Point);
-            writer.WriteLine(this.rep);
-            writer.WriteLine(this.bg);
-            writer.WriteLine(this.overlay);
-            writer.WriteLine("{");
-            foreach (string bg in this.owned_backgrounds)
-                writer.WriteLine(bg);
-            writer.WriteLine("}");
-            writer.WriteLine("{");
-            foreach (string ov in this.owned_overlays)
-                writer.WriteLine(ov);
-            writer.WriteLine("}");
-            writer.Close();
-            file.Close();
-        }
+            try
+			{
+				FileStream file = File.Create("../../Profiles/" + this.id + "/main.profile");
+                StreamWriter writer = new StreamWriter(file);
+                writer.WriteLine(this.Name);
+                writer.WriteLine(this.id);
+                writer.WriteLine(this.tag);
+                writer.WriteLine(this.desc);
+                writer.WriteLine(this.Point);
+                writer.WriteLine(this.rep);
+                writer.WriteLine(this.bg);
+                writer.WriteLine(this.overlay);
+                writer.WriteLine("{");
+                foreach (string bg in this.owned_backgrounds)
+                    writer.WriteLine(bg);
+                writer.WriteLine("}");
+                writer.WriteLine("{");
+                foreach (string ov in this.owned_overlays)
+                    writer.WriteLine(ov);
+                writer.WriteLine("}");
+                writer.Close();
+                file.Close();
+			} catch(Exception e)
+            {
+                Program.Log(new LogMessage(LogSeverity.Info, "Profiles", e.Message));
+			}
+			alreadyWriting = false;
+			writingIds.Remove(this.id);
+		}
     }
-
 }
