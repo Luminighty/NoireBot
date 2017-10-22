@@ -18,37 +18,61 @@ namespace NoireBot.Rpg
         [Command("rpg")]
         public async Task MainRpg([Remainder] string command = "")
 		{
-			IUserMessage msg = await ReplyAsync("Processing...");
-			if (command == "")
-            {
-                await Output(Program.rpg.Process(new string[] { }, Context.User), msg);
-                Program.rpg.EndProcess(Context.User);
-                return;
-            }
-			
-			string[] input = command.Split(' ');
-            Result r = Program.rpg.Process(input, Context.User);
-            await Output(r, msg);
-            if (r.StartEnemyTurn)
+			IDisposable typing = Context.Channel.EnterTypingState();
+			try
 			{
-				msg = await ReplyAsync("Processing Enemy turn...");
-				r = Program.rpg.EnemyProcess(Context.User);
-                await Output(r, msg);
-            }
-            Program.rpg.EndProcess(Context.User);
+				IUserMessage msg = await ReplyAsync("Processing...");
+				if (command == "")
+				{
+					await Output(Program.rpg.Process(new string[] { }, Context.User), msg, Context);
+					Program.rpg.EndProcess(Context.User);
+					typing.Dispose();
+					return;
+				}
+
+				string[] input = command.Split(' ');
+				Result r = Program.rpg.Process(input, Context.User);
+				await Output(r, msg, Context);
+				if (r.StartEnemyTurn)
+				{
+					msg = await ReplyAsync("Processing Enemy turn...");
+					r = Program.rpg.EnemyProcess(Context.User);
+					await Output(r, msg, Context);
+				}
+				Program.rpg.EndProcess(Context.User);
+				typing.Dispose();
+			} catch(Exception exc)
+			{
+				await ReplyAsync("Error! Please report me!");
+				typing.Dispose();
+				Program.rpg.EndProcess(Context.User);
+				await Program.Log(LogSeverity.Critical, "RPG", Context.Guild.Name + " - " + Context.Channel.Name);
+				await Program.Log(LogSeverity.Critical, "RPG", "StackTrace: " + exc.StackTrace + "");
+				await Program.Log(LogSeverity.Critical, "RPG", "TargetSite: " + exc.TargetSite + "");
+				await Program.Log(LogSeverity.Critical, "RPG", "HelpLink: " + exc.HelpLink + "");
+				await Program.Log(LogSeverity.Critical, "RPG", "Message: " + exc.Message + "");
+				IDMChannel lumiChannel = await (await Context.Guild.GetUserAsync(Program.LumiID)).GetOrCreateDMChannelAsync();
+				await lumiChannel.SendMessageAsync("**ERROR**: " + Context.Guild.Name + " - " + Context.Channel.Name);
+				await lumiChannel.SendMessageAsync("```" + exc.StackTrace + "```");
+				await lumiChannel.SendMessageAsync("```" + exc.TargetSite + "```");
+				await lumiChannel.SendMessageAsync("```" + exc.HelpLink + "```");
+				await lumiChannel.SendMessageAsync("```" + exc.Message + "```");
+			}
         }
 
-        public async Task Output(Result res, IUserMessage processMessage = null)
+        public async Task Output(Result res, IUserMessage processMessage = null, ICommandContext c = null)
 		{
-			if (res == new Result())
+			if (res == new Result() || res == null)
 			{
 				return;
 			}
-            IMessageChannel channel =  (res.isPrivate) ? await Context.User.GetDMChannelAsync() : Context.Channel;
+            IMessageChannel channel =  (res.isPrivate) ? await Context.User.GetOrCreateDMChannelAsync() : Context.Channel;
 
             if (File.Exists(res.Text))
-            {
-                await channel.SendFileAsync(res.Text);
+			{
+				if(channel == null)
+					await Program.Log(LogSeverity.Critical, "RPG", "channel == null");
+				await channel.SendFileAsync(res.Text);
 				try
 				{
 					await processMessage.DeleteAsync(RequestOptions.Default);
@@ -75,13 +99,15 @@ namespace NoireBot.Rpg
                     {
                         await channel.SendMessageAsync(line);
                         line = "";
-                        currentLenght = lines.Length;
+                        currentLenght = lines[i].Length;
                     }
                     line += lines[i];
-                }
-            } else
-            {
-                await channel.SendMessageAsync(res.Text);
+				}
+				await channel.SendMessageAsync(line);
+
+			} else
+			{
+				await channel.SendMessageAsync(res.Text);
 			}
 			try
 			{

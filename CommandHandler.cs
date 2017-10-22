@@ -1,53 +1,51 @@
 ﻿using System.Threading.Tasks;
+using System;
 using System.Reflection;
-using Discord.Commands;
+using Discord;
 using Discord.WebSocket;
+using Discord.Commands;
+using Discord.Audio;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 namespace NoireBot
 {
     public class CommandHandler
     {
-        private CommandService commands;
-        private DiscordSocketClient client;
-        private IDependencyMap map;
+		
 
-        public async Task Install(IDependencyMap _map)
+		private readonly CommandService commands;
+        private readonly DiscordSocketClient client;
+        private IServiceProvider provider;
+
+		public CommandHandler(IServiceProvider _provider, DiscordSocketClient _discord, CommandService _commands)
+		{
+			commands = _commands;
+			provider = _provider;
+			client = _discord;
+
+			client.MessageReceived += HandleCommand;
+
+		}
+
+        public async Task Install(IServiceProvider _provider)
         {
-            // Create Command Service, inject it into Dependency Map
-            client = _map.Get<DiscordSocketClient>();
-            commands = new CommandService(new CommandServiceConfig() {
-                DefaultRunMode = RunMode.Async
-            });
-            commands.Log += Program.Log;
-
-            map = _map;
-
+			provider = _provider;
             await commands.AddModulesAsync(Assembly.GetEntryAssembly());
-
-            client.MessageReceived += HandleCommand;
         }
 
-        public async Task HandleCommand(SocketMessage parameterMessage)
-        {
-            // Don't handle the command if it is a system message
-            var message = parameterMessage as SocketUserMessage;
-            if (message == null) return;
+        public async Task HandleCommand(SocketMessage rawMessage)
+		{
+			// Ignore system messages and messages from bots
+			if (!(rawMessage is SocketUserMessage message)) return;
+			if (message.Source != MessageSource.User) return;
 
-            // Mark where the prefix ends and the command begins
-            int argPos = 0;
-            // Determine if the message has a valid prefix, adjust argPos 
-            if (!(message.HasMentionPrefix(client.CurrentUser, ref argPos) || message.HasCharPrefix('>', ref argPos))) return;
+			int argPos = 0;
+			if (!message.HasMentionPrefix(client.CurrentUser, ref argPos) && !message.HasCharPrefix('>', ref argPos)) return;
 
-            // Create a Command Context
-            var context = new CommandContext(client, message);
-            // Execute the Command, store the result
-            var result = await commands.ExecuteAsync(context, argPos, map);
-            // If the command failed, notify the user
-            /*
-            if(result.ErrorReason != "Unknown command.")
-            if (!result.IsSuccess)
-                await message.Channel.SendMessageAsync($"**Error:** {result.ErrorReason}");
-                */
-        }
+			var context = new SocketCommandContext(client, message);
+			var result = await commands.ExecuteAsync(context, argPos, provider, MultiMatchHandling.Best);
+			
+		}
     }
 }

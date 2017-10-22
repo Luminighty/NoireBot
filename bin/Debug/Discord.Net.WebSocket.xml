@@ -70,36 +70,6 @@
         <member name="M:Discord.Audio.AudioClient.Dispose">
             <inheritdoc />
         </member>
-        <member name="F:Discord.Audio.OpusConverter.BitsPerSample">
-            <summary> Gets the bit rate of this converter. </summary>
-        </member>
-        <member name="F:Discord.Audio.OpusConverter.SampleSize">
-            <summary> Gets the bytes per sample. </summary>
-        </member>
-        <member name="F:Discord.Audio.OpusConverter.MaxChannels">
-            <summary> Gets the maximum amount of channels this encoder supports. </summary>
-        </member>
-        <member name="P:Discord.Audio.OpusConverter.SamplingRate">
-            <summary> Gets the input sampling rate of this converter. </summary>
-        </member>
-        <member name="P:Discord.Audio.OpusConverter.Channels">
-            <summary> Gets the number of samples per second for this stream. </summary>
-        </member>
-        <member name="M:Discord.Audio.OpusDecoder.DecodeFrame(System.Byte[],System.Int32,System.Int32,System.Byte[],System.Int32)">
-            <summary> Produces PCM samples from Opus-encoded audio. </summary>
-            <param name="input">PCM samples to decode.</param>
-            <param name="inputOffset">Offset of the frame in input.</param>
-            <param name="output">Buffer to store the decoded frame.</param>
-        </member>
-        <member name="P:Discord.Audio.OpusEncoder.Application">
-            <summary> Gets the coding mode of the encoder. </summary>
-        </member>
-        <member name="M:Discord.Audio.OpusEncoder.EncodeFrame(System.Byte[],System.Int32,System.Int32,System.Byte[],System.Int32)">
-            <summary> Produces Opus encoded audio from PCM samples. </summary>
-            <param name="input">PCM samples to encode.</param>
-            <param name="output">Buffer to store the encoded frame.</param>
-            <returns>Length of the frame contained in outputBuffer.</returns>
-        </member>
         <member name="T:Discord.Audio.Streams.BufferedWriteStream">
             <summary> Wraps another stream with a timed buffer. </summary>
         </member>

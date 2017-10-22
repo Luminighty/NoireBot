@@ -8,6 +8,10 @@ using Discord.Commands;
 using Discord.Audio;
 using NoireBot.Rpg;
 using System.Management;
+using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System.Net;
 
 namespace NoireBot
 {
@@ -17,13 +21,19 @@ namespace NoireBot
         public static List<string> Zippies = new List<string>();
         public static int[] lastZippies = new int[20];
         public static int[] lastMemes = new int[20];
-        public static string help;
+		public static List<string> vofiNicks = new List<string>();
+		public static string help;
         public Random rand;
         public static RPG rpg;
         public static ulong LumiID = 128182611376996352;
         public static ulong botID = 246933734010519552;
-        public static List<IMessageChannel> spamChannels = new List<IMessageChannel>();
+		public static ulong noireServerID = 314878458348175361;
+		public static List<ulong> spamChannels = new List<ulong>();
         public static IAudioClient audClient;
+		/// <summary>
+		/// ../../
+		/// </summary>
+		public static string sourcePath = "../../";
 
         // Convert our sync main to an async main.
         public static void Main(string[] args) {
@@ -36,7 +46,9 @@ namespace NoireBot
                 Console.ReadKey();
             }
             }
+
         public static DiscordSocketClient client;
+		//private IConfiguration config;
         private CommandHandler handler;
         
         public void GetArgs(string[] args)
@@ -70,27 +82,29 @@ namespace NoireBot
 
         public async Task Start(string[] args)
         {
-            lockKey = Environment.UserName + Environment.TickCount.ToString();
+
+			client = new DiscordSocketClient();
+			//config = BuildConfig();
+
+			var token = "MjQ2OTMzNzM0MDEwNTE5NTUy.DKcMkg.HX_ilw_n5RfojvsXjFgS8NXTdBw";
+
+			var services = ConfigureServices();
+			services.GetRequiredService<LogService>();
+			await services.GetRequiredService<CommandHandler>().Install(services);
+
+
+			lockKey = Environment.UserName + Environment.TickCount.ToString();
             Console.ForegroundColor = ConsoleColor.DarkMagenta;
             Console.WriteLine(WelcomeImage());
-            SendColorHelp();
             GetArgs(args);
             rand = new Random();
             // Define the DiscordSocketClient with a DiscordSocketConfig
-            client = new DiscordSocketClient(new DiscordSocketConfig() {
-                LogLevel = LogSeverity.Info
-            });
-            var token = "MjQ2OTMzNzM0MDEwNTE5NTUy.DAb7QA.TJSU1gzfw_SiRVMJZYJOd1vvxFA";
 
             // Login and connect to Discord.
             await client.LoginAsync(TokenType.Bot, token);
             await client.StartAsync();
-
-            var map = new DependencyMap();
-            map.Add(client);
-            map.Add(new AudioService());
-            handler = new CommandHandler();
-            await handler.Install(map);
+			LoadVofiNicks();
+			changeVofiNick();
 
             if(isAdmin)
             await Log(new LogMessage(LogSeverity.Info, "Control", "Admin Detected"));
@@ -98,23 +112,42 @@ namespace NoireBot
             LoadDatas();
 
             // add logger
-            client.Log += Log;
-
             // Log the invite URL on client ready
             client.Ready += Client_Ready;
 
             client.MessageReceived += Client_MessageReceived;
+			client.MessageDeleted += Client_MessageDeleted;
             await Task.Delay(5000);
             SetGame();
             SaveData();
             CheckLock();
             await Task.Delay(-1);
         }
+		private IServiceProvider ConfigureServices()
+		{
+			return new ServiceCollection().
+				AddSingleton(client)
+				.AddSingleton<CommandService>()
+				.AddSingleton<CommandHandler>()
+				.AddSingleton<AudioService>()
+				.AddLogging()
+				.AddSingleton<LogService>()
+				//.AddSingleton(config)
+				.BuildServiceProvider();
+		}
+		/*
+		private IConfiguration BuildConfig()
+		{
+			return new ConfigurationBuilder().
+				SetBasePath(Directory.GetCurrentDirectory())
+				.AddJsonFile("config.json")
+				.Build();
+		}*/
 
         private void LoadDatas()
         {
-            ProfileCommands.LoadProfileBuilders();
-            ProfileCommands.LoadProfiles();
+            /*ProfileCommands.LoadProfileBuilders();
+            ProfileCommands.LoadProfiles();*/
             LoadZippies();
             LoadHelp();
             rpg = new RPG();
@@ -126,6 +159,7 @@ namespace NoireBot
             {
                 await client.SetGameAsync(StartingGame);
                 await Task.Delay(3600000);
+				StartingGame = "";
                 SetGame();
                 return;
             }
@@ -154,11 +188,11 @@ namespace NoireBot
         }
 
         private async void SaveData()
-        {
+        {/*
             await Task.Delay(60000);
-            foreach (Profile prof in ProfileCommands.profiles)
-                prof.WriteFile();
-            SaveData();
+			foreach (Profile prof in ProfileCommands.profiles)
+				prof.WriteFile();
+            SaveData();*/
         }
 
         private string WelcomeImage()
@@ -170,20 +204,114 @@ namespace NoireBot
             file.Close();
             return text;
         }
+		
+		private async void onZippyMessage(SocketMessage arg)
+		{
 
-        private void SendColorHelp()
-        {
-            Console.WriteLine();
-            for (int i = 0; i < 6; i++)
-                Log(new LogMessage((LogSeverity)i, "Colors", ((LogSeverity)i).ToString()));
-            Console.WriteLine();
-        }
+			IUserMessage msg = await arg.Channel.GetMessageAsync(arg.Id) as IUserMessage;
+			await msg.AddReactionAsync(Emote.Parse("<:noire:360395650648768513>") as IEmote);
+			await msg.AddReactionAsync(Emote.Parse("<:Zippy:236772422991347712>") as IEmote);
+		}
+		public static bool ZippyMessageReactions = false;
+
+		void LoadVofiNicks()
+		{
+			if (!File.Exists("../../vofi.nick"))
+				return;
+			StreamReader reader = new StreamReader("../../vofi.nick");
+			while(reader.Peek() > -1)
+			{
+				vofiNicks.Add(reader.ReadLine());
+			}
+
+			reader.Close();
+			reader.Dispose();
+
+		}
+
+		private Dictionary<ulong, IUserMessage> ai_msgCopies = new Dictionary<ulong, IUserMessage>();
+
+		private Task Client_MessageDeleted(Cacheable<IMessage, ulong> arg1, ISocketMessageChannel arg2)
+		{
+			if(ai_msgCopies.ContainsKey(arg1.Id))
+			{
+				var channel = client.GetGuild(206475498153443329).GetChannel(206475498153443329) as IMessageChannel;
+				ai_msgCopies[arg1.Id].DeleteAsync();
+				ai_msgCopies.Remove(arg1.Id);
+			}
+		
+			return Task.CompletedTask;
+		}
+
+		private async void changeVofiNick()
+		{
+			await Task.Delay(1300000);
+			if (vofiNicks.Count > 0)
+			{
+				Action<GuildUserProperties> action = new Action<GuildUserProperties>((x) => {
+					x.Nickname = vofiNicks[rand.Next(0, vofiNicks.Count)];
+				});
+
+				await client.GetGuild(206475498153443329).CurrentUser.ModifyAsync(action);
+
+			}
+			changeVofiNick();
+		}
+
+		private async void onAIMessage(SocketMessage arg)
+		{
+			if (arg.Content.Length > 2)
+				if (arg.Content[0] == '/' && arg.Content[1] == '/')
+					return;
+			if (arg.Author.IsBot && arg.Author.Id != 246933734010519552)
+				return;
+			var channel = client.GetGuild(206475498153443329).GetChannel(206475498153443329) as IMessageChannel;
+			IUserMessage msg = null;
+			if (arg.Attachments.Count != 0)
+			{
+				foreach (var c in arg.Attachments)
+				{
+					string name = Zippies[rand.Next(0, Zippies.Count)];
+					WebClient web = new WebClient();
+					web.DownloadFile(c.Url, "../" + name + ".png");
+					msg = await channel.SendFileAsync("../" + name + ".png", arg.Content);
+					File.Delete("../" + name + ".png");
+				}
+			}
+			else if (!string.IsNullOrEmpty(arg.Content))
+			{
+				msg = await channel.SendMessageAsync(arg.Content);
+			}
+			ai_msgCopies.Add(arg.Id, msg);
+		}
 
         private Task Client_MessageReceived(SocketMessage arg)
         {
+			if (arg.Channel.Id == 369541623979442176)
+				onAIMessage(arg);
+			if(arg.Author.Id == 133871176199045120)
+			{
+				if(Program.ZippyMessageReactions)
+					onZippyMessage(arg);
+
+			}
+
+			/*
             int index = ProfileCommands.CheckUser(arg.Author);
-            ProfileCommands.profiles[index].Point++;
-            return Task.CompletedTask;
+			Profile p = ProfileCommands.profiles[index];
+			DateTime t = p.MessageCd;
+			if (DateTime.Compare(t.AddSeconds(10), DateTime.Now) > 0)
+			{
+				p.credit++;
+				int lvl = p.lvl;
+				p.xp += 3;
+				if(lvl != p.lvl)
+				{
+					arg.Channel.SendMessageAsync("**Level Up!** " + arg.Author.Username + " is now **Lvl" + p.lvl + "**!");
+				}
+				p.MessageCd = DateTime.Now;
+			}*/
+			return Task.CompletedTask;
         }
         
         private async void CheckLock()
@@ -223,36 +351,20 @@ namespace NoireBot
             await Log(new LogMessage(LogSeverity.Info, "Discord",
                 $"Invite URL: <https://discordapp.com/oauth2/authorize?client_id={application.Id}&scope=bot>"));
         }
-
+		
         // Bare minimum Logging function for both DiscordSocketClient and CommandService
         public static Task Log(LogMessage msg)
         {
-            switch(msg.Severity)
-            {
-                case LogSeverity.Critical:
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    break;
-                case LogSeverity.Error:
-                    Console.ForegroundColor = ConsoleColor.DarkRed;
-                    break;
-                case LogSeverity.Warning:
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    break;
-                case LogSeverity.Info:
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    break;
-                case LogSeverity.Verbose:
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    break;
-                default:
-                    Console.ForegroundColor = ConsoleColor.White;
-                    break;
-            }
-            Console.WriteLine(msg.ToString());
-            Console.ForegroundColor = ConsoleColor.Gray;
+			LogService.Log(msg);
             return Task.CompletedTask;
         }
         
+		public static Task Log(LogSeverity severity, string Source, string Message)
+		{
+			Log(new LogMessage(severity, Source, Message));
+			return Task.CompletedTask;
+		}
+
         public static void LoadHelp()
         {
             FileStream file = File.Open("../../Help.txt", FileMode.Open);

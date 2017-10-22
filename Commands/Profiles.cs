@@ -9,7 +9,7 @@ using Discord.WebSocket;
 using System.Net;
 using System.IO;
 using System.Drawing;
-
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace NoireBot
 {
@@ -136,41 +136,11 @@ namespace NoireBot
 
             foreach (string folder in folders)
             {
-                StreamReader reader = new StreamReader(folder + "/main.profile");
-
-                Profile newProf = new Profile
-                {
-                    Name = reader.ReadLine(),
-                    id = Convert.ToUInt64(reader.ReadLine()),
-                    tag = Convert.ToUInt16(reader.ReadLine()),
-                    desc = reader.ReadLine(),
-                    Point = Convert.ToInt16(reader.ReadLine()),
-                    rep = Convert.ToInt16(reader.ReadLine()),
-                    bg = reader.ReadLine(),
-                    overlay = reader.ReadLine()
-                };
-                string bg = reader.ReadLine(); //bg start
-                int counter = 0;
-                while (bg != "}" && counter < 100)
-                {
-                    counter++;
-                    bg = reader.ReadLine();
-                    if (bg != "}")
-                        newProf.owned_backgrounds.Add(bg);
-                }
-                counter = 0;
-                bg = reader.ReadLine(); //ov start
-                while (bg != "}" && counter < 100)
-                {
-                    counter++;
-                    bg = reader.ReadLine();
-                    if (bg != "}")
-                        newProf.owned_overlays.Add(bg);
-                }
-
-
-                reader.Close();
+				FileStream file = File.Open(folder + "/main.profile", FileMode.Open);
+				BinaryFormatter formatter = new BinaryFormatter();
+				Profile newProf = ((Profile)formatter.Deserialize(file));
                 profiles.Add(newProf);
+				file.Close();
             }
 
             Program.Log(new LogMessage(LogSeverity.Debug, "Profiles", "Profiles Updated!"));
@@ -193,7 +163,7 @@ namespace NoireBot
 
         public static void SortProfiles()
         {
-            profiles.Sort(delegate (Profile p1, Profile p2) { return (-1 * p1.Point).CompareTo((-1 * p2.Point)); });
+            profiles.Sort(delegate (Profile p1, Profile p2) { return (-1 * p1.xp).CompareTo((-1 * p2.xp)); });
         }
 
         /// <summary>
@@ -232,6 +202,7 @@ namespace NoireBot
 
     }
 
+	[System.Serializable]
     public class Profile
     {
         public Profile(ulong _id = 0)
@@ -239,8 +210,9 @@ namespace NoireBot
             this.id = _id;
             this.Name = "";
             this.desc = "";
-            this.Point = 0;
-            this.bg = "Empty";
+			this.credit = 0;
+			this.xp = 0;
+			this.bg = "Empty";
             this.overlay = "PlainBlack";
             this.owned_overlays = new List<string>();
             this.owned_backgrounds = new List<string>();
@@ -258,8 +230,9 @@ namespace NoireBot
 			this.id = user.Id;
             this.Name = user.Username;
             this.desc = "";
-            this.Point = 0;
-            this.bg = "Empty";
+			this.credit = 0;
+			this.xp = 0;
+			this.bg = "Empty";
             this.overlay = "PlainBlack";
             this.owned_overlays = new List<string>();
             this.owned_backgrounds = new List<string>();
@@ -268,8 +241,7 @@ namespace NoireBot
 			if (iswritefile)
 				WriteFile();
         }
-
-
+		
         #region variables
         public string Name;
         public string desc;
@@ -280,23 +252,57 @@ namespace NoireBot
         public List<string> owned_backgrounds = new List<string>();
         public List<string> owned_overlays = new List<string>();
 
+		/// <summary>
+		/// DO NOT USER IT TO ADD BADGES!
+		/// </summary>
+		public List<Badge> badges = new List<Badge>();
+
         public ulong id;
         public ushort tag;
+		
+		public int xp;
+		public int remainingXp = 0;
+		public int xpNeeded = 0;
 
-        public int Point;
-        public int rep;
+		public int lvl
+		{
+			get {
+				int _lvl = 1;
+				int nextLvl = 100;
+				remainingXp = xp;
+				xpNeeded = nextLvl;
+				while (remainingXp >= nextLvl)
+				{
+					remainingXp -= nextLvl;
+					nextLvl = Convert.ToInt32(nextLvl * 1.2f);
+					xpNeeded = nextLvl;
+				}
+				return _lvl;
+			}
+		}
+
+		/// <summary>
+		/// The last time the user recieved xp or credits from messages
+		/// </summary>
+		public DateTime MessageCd;
+
+		/// <summary>
+		/// The last time the user used Dailies
+		/// </summary>
+		public DateTime dailyCd;
+
+        public int credit;
+        public int reputation;
 
         public DateTime prof_LastUpdated;
         public DateTime LastAutism;
         public DateTime LastRep;
 
         private Random rand;
-        /// <summary>
-        /// If it's already writing the profile then prevent another process from doing so;
-        /// </summary>
-        #endregion
+		#endregion
 
-        public string GeneratePicture(int rank, IUser user)
+		#region Methods
+		public string GeneratePicture(int rank, IUser user)
         {
             if (this.bg == "default")
                 this.bg = "Empty";
@@ -329,10 +335,10 @@ namespace NoireBot
                     graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
                     Font SmallCooper = new Font("Cooper Std Black", 11);
                     graphics.DrawString(this.desc, SmallCooper, Brushes.Black, descRect);
-                    graphics.DrawString(this.Point.ToString(), cooper, Brushes.Black, AutPoints, format);
+                    graphics.DrawString(this.credit.ToString(), cooper, Brushes.Black, AutPoints, format);
                     graphics.DrawString(this.Name, cooper, Brushes.Black, namePoint, format);
                     format.Alignment = StringAlignment.Far;
-                    graphics.DrawString(this.rep.ToString(), cooper, Brushes.Black, Rep, format);
+                    graphics.DrawString(this.reputation.ToString(), cooper, Brushes.Black, Rep, format);
                     graphics.DrawString((rank + 1).ToString(), cooper, Brushes.Black, Rank, format);
                     graphics.DrawImage(avatar, AvatarPoint);
                 }
@@ -374,11 +380,11 @@ namespace NoireBot
                 string s = "";
                 if (sec > 1)
                     s = "s";
-                return "Hold on! You're using delayed commands! Please wait " + sec.ToString() + " second" + s + ".";
+                return "Hold on! You're using delayed commands too frequently! Please wait " + sec.ToString() + " second" + s + ".";
             }
             if (backgrounds.ContainsKey(bg))
             {
-                if (backgrounds[bg] > this.Point)
+                if (backgrounds[bg] > this.credit)
                 {
                     return "You don't have enough point! It needs " + backgrounds[bg] + " autism point.";
                 }
@@ -408,7 +414,7 @@ namespace NoireBot
             }
             if (overlays.ContainsKey(overlay))
             {
-                if (overlays[overlay] > this.Point)
+                if (overlays[overlay] > this.credit)
                 {
                     return "You don't have enough point! It needs " + overlays[overlay] + " autism point.";
                 }
@@ -428,7 +434,7 @@ namespace NoireBot
 
         public string GetPoint(string mention)
         {
-            int tempPoint = this.Point / 50;
+            int tempPoint = this.credit / 50;
             string plustext = "";
             string[] emojies = new string[] { "🙃", "🤶", "🤤", "💆", "💩", "🤥", "🤡" };
             string emoji = emojies[rand.Next(0, emojies.Length)];
@@ -453,18 +459,21 @@ namespace NoireBot
                     plustext = "(That means you're autistic)";
                     break;
             }
-            if (this.Point > 1000)
+            if (this.credit > 1000)
                 plustext = "Autism overloaded. Kys!";
-            return mention + ", your Autism Points is on " + this.Point + "! " + plustext + " " + emoji;
+            return mention + ", your Autism Points is on " + this.credit + "! " + plustext + " " + emoji;
         }
 
         public static void SortProfiles(ref List<Profile> profiles)
         {
-            profiles.Sort(delegate (Profile p1, Profile p2) { return (-1 * p1.Point).CompareTo((-1 * p2.Point)); });
+            profiles.Sort(delegate (Profile p1, Profile p2) { return (-1 * p1.credit).CompareTo((-1 * p2.credit)); });
         }
 
 		public static List<ulong> profileWritings = new List<ulong>();
 
+		/// <summary>
+		/// If it's already writing the profile then prevent another process from doing so;
+		/// </summary>
 		bool alreadyWriting = false;
 
 		static List<ulong> writingIds = new List<ulong>();
@@ -482,6 +491,9 @@ namespace NoireBot
 				return;
 			}
 
+			if (this.id == 0)
+				Program.Log(LogSeverity.Debug, "Profiles", "Writing a file with ID = 0");
+
 			writingIds.Add(this.id);
 			alreadyWriting = true;
             if (!Directory.Exists("../../Profiles/" + this.id))
@@ -489,7 +501,7 @@ namespace NoireBot
             try
 			{
 				FileStream file = File.Create("../../Profiles/" + this.id + "/main.profile");
-                StreamWriter writer = new StreamWriter(file);
+				/*StreamWriter writer = new StreamWriter(file);
                 writer.WriteLine(this.Name);
                 writer.WriteLine(this.id);
                 writer.WriteLine(this.tag);
@@ -506,7 +518,11 @@ namespace NoireBot
                 foreach (string ov in this.owned_overlays)
                     writer.WriteLine(ov);
                 writer.WriteLine("}");
-                writer.Close();
+                writer.Close();*/
+
+				BinaryFormatter formatter = new BinaryFormatter();
+				formatter.Serialize(file, this);
+
                 file.Close();
 			} catch(Exception e)
             {
@@ -515,5 +531,44 @@ namespace NoireBot
 			alreadyWriting = false;
 			writingIds.Remove(this.id);
 		}
-    }
+
+		public void AddBadge(Badge badge)
+		{
+			for (int i = 0; i < badges.Count; i++)
+				if (badges[i].id == badge.removes)
+				{
+					badges.RemoveAt(i);
+					break;
+				}
+			badges.Add(badge);
+		}
+
+		#endregion
+
+		[System.Serializable]
+		public class Badge
+		{
+
+			public int id;
+			public string name;
+			public string description;
+			public string badgeImg;
+			public int removes;
+
+			public Badge(int _id, string _name, string _description, string _badgeImg, int _removes)
+			{
+				this.id = _id;
+				this.name = _name;
+				this.description = _description;
+				this.badgeImg = _badgeImg;
+				this.removes = _removes;
+			}
+
+
+		}
+
+	}
+
+	
+
 }

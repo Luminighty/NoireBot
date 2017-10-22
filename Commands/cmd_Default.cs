@@ -25,11 +25,11 @@ namespace NoireBot
 			Program.LoadZippies();
 			int points = 0;
 			foreach (Profile prof in ProfileCommands.profiles)
-				points += prof.Point;
+				points += prof.credit;
 			string zippyLine = "";
 			string autism = "";
 			string richest = "richest";
-			if ((await Context.User.GetDMChannelAsync()) != Context.Channel)
+			if ((await Context.User.GetOrCreateDMChannelAsync()) != Context.Channel)
 				if (Context.Guild.Id == VofiServerID)
 				{
 					zippyLine = Program.Zippies.Count + " Zippy quotes, ";
@@ -37,7 +37,7 @@ namespace NoireBot
 					richest = "most autistic";
 				}
 			string text = "Noirebot is currently on version 1.3.3.8" + Environment.NewLine +
-				"There are " + zippyLine + ProfileCommands.profiles.Count + " profiles and the " + richest + " has " + ProfileCommands.profiles[0].Point + autism + " point." + Environment.NewLine +
+				"There are " + zippyLine + ProfileCommands.profiles.Count + " profiles and the " + richest + " has " + ProfileCommands.profiles[0].credit + autism + " point." + Environment.NewLine +
 				"Alltogether we have " + points + autism + " points.";
 			await ReplyAsync(text);
 		}
@@ -118,15 +118,19 @@ namespace NoireBot
 					}
 				}
 				else if (args != "")
+				{
+					List<int> possibleZippies = new List<int>();
 					for (int j = 0; j < Program.Zippies.Count; j++)
 					{
 						if (Program.Zippies[j].ToLower().Contains(args.ToLower()))
 						{
+							possibleZippies.Add(j);
 							skipRandomizer = true;
-							i = j;
-							j = Program.Zippies.Count;
 						}
 					}
+					if(skipRandomizer)
+						i = possibleZippies[rand.Next(possibleZippies.Count)];
+				}
 			}
 
 			if (!skipRandomizer)
@@ -189,7 +193,7 @@ namespace NoireBot
 		[Alias(new string[] { "aut", "ap", "autist" })]
 		public async Task Autism(IGuildUser autist = null, [Remainder]string number = "")
 		{
-			var channel = await Context.User.GetDMChannelAsync();
+			var channel = await Context.User.GetOrCreateDMChannelAsync();
 			if (Context.User.Id != Program.LumiID && Context.Channel == channel)
 			{
 				IGuildUser user = Context.User as IGuildUser;
@@ -227,7 +231,7 @@ namespace NoireBot
 			try
 			{
 				int newPoint = Convert.ToInt32(number);
-				ProfileCommands.profiles[pointUser].Point += newPoint;
+				ProfileCommands.profiles[pointUser].credit += newPoint;
 				ProfileCommands.profiles[pointUser].WriteFile();
 				if (newPoint > 0)
 					await ReplyAsync(ProfileCommands.profiles[pointUser].Name + " is more autistic now. Huzzah!");
@@ -277,7 +281,7 @@ namespace NoireBot
 
 			if (text == "-")
 			{
-				ProfileCommands.profiles[Rep].rep--;
+				ProfileCommands.profiles[Rep].reputation--;
 				await ReplyAsync(Context.User.Username + " removed rep from " + ProfileCommands.profiles[Rep].Name + "!");
 				ProfileCommands.profiles[Rep].WriteFile();
 				ProfileCommands.profiles[index].LastRep = DateTime.Now;
@@ -285,7 +289,7 @@ namespace NoireBot
 			}
 			if (text == "+" || text == "")
 			{
-				ProfileCommands.profiles[Rep].rep++;
+				ProfileCommands.profiles[Rep].reputation++;
 				await ReplyAsync(Context.User.Username + " gave rep to " + ProfileCommands.profiles[Rep].Name + "!");
 				ProfileCommands.profiles[Rep].WriteFile();
 				ProfileCommands.profiles[index].LastRep = DateTime.Now;
@@ -321,19 +325,19 @@ namespace NoireBot
 			{
 				await Program.Log(new LogMessage(LogSeverity.Info, "Spam", "Couldn't delete the message! Exception: " + e.Message));
 			}
-			if (Program.spamChannels.Contains(Context.Channel))
+			if (Program.spamChannels.Contains(Context.Channel.Id))
 			{
-				Program.spamChannels.Remove(Context.Channel);
+				Program.spamChannels.Remove(Context.Channel.Id);
 				return;
 			}
 			spamtext = (string.IsNullOrEmpty(spamtext)) ? "spam" : spamtext;
 
-			Program.spamChannels.Add(Context.Channel);
+			Program.spamChannels.Add(Context.Channel.Id);
 
-			while (Program.spamChannels.Contains(Context.Channel))
+			while (Program.spamChannels.Contains(Context.Channel.Id))
 			{
 				await Context.Channel.SendMessageAsync(spamtext);
-				await Task.Delay(200);
+				await Task.Delay(1000);
 			}
 
 		}

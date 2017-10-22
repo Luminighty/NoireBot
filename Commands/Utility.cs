@@ -33,25 +33,27 @@ namespace NoireBot
 				{
 					foreach (IMessage imsg in msg.ToList<IMessage>())
 					{
+						if (count > size)
+							break;
 						if ((user == null || imsg.Author == user) && (text == "" || imsg.Content.Contains(text)))
 						{
 							ids.Add(imsg);
 							count++;
 						}
-						if (count > size)
-							break;
 
 					}
 				}
 				await Context.Channel.DeleteMessagesAsync(ids.AsEnumerable<IMessage>());
 				string s = (ids.Count > 1) ? "s" : "";
+
 				var deletedMessage = await ReplyAsync("**" + (ids.Count - 1) + "** message" + s + " deleted! :wastebasket:");
 				await Task.Delay(3000);
 				await deletedMessage.DeleteAsync();
 			}
 			catch (Exception exc)
 			{
-				await Program.Log(new LogMessage(LogSeverity.Info, "Prune", "Couldn't delete the messages."));
+				await Program.Log(new LogMessage(LogSeverity.Info, "Prune", "Couldn't delete the messages. (Exception: " + exc.StackTrace + "\n" + exc.TargetSite + "\n" + exc.HelpLink + "\n" + exc.Message +")"));
+				await ReplyAsync("I don't have permission to delete the messages.");
 			}
 		}
 
@@ -65,7 +67,7 @@ namespace NoireBot
 		}
 
 		[Command("kick")]
-		public async Task Kick(IGuildUser user = null)
+		public async Task Kick(IGuildUser user = null, [Remainder]string reason = "")
 		{
 			if(user == null)
 			{
@@ -73,13 +75,13 @@ namespace NoireBot
 
 			} else
 			{
-				await user.KickAsync();
+				await user.KickAsync(reason);
 				await ReplyAsync(user.Nickname + " was kicked from the server.");
 			}
 		}
 		
 		[Command("ban")]
-		public async Task Ban(IGuildUser user = null)
+		public async Task Ban(IGuildUser user = null, [Remainder]string reason = "")
 		{
 			if (user == null)
 			{
@@ -88,10 +90,9 @@ namespace NoireBot
 			}
 			else
 			{
-				await Context.Guild.AddBanAsync(user, 0);
+				await Context.Guild.AddBanAsync(user, 0, reason);
 				await ReplyAsync(user.Nickname + " was banned from the server.");
 			}
-
 		}
 	}
 }
