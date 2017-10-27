@@ -132,7 +132,7 @@ namespace NoireBot
                 // You can change the bitrate of the outgoing stream with an additional argument to CreatePCMStream().
                 // If not specified, the default bitrate is 96*1024.
                 var stream = client.CreatePCMStream(AudioApplication.Music);
-				/*
+				
                 var source = new CancellationTokenSource();
                 if(cancelTokens.TryGetValue(guild.Id, out source)) {
                     //stop the music first!
@@ -142,15 +142,15 @@ namespace NoireBot
                 source = new CancellationTokenSource();
                 if (cancelTokens.TryAdd(guild.Id, source)) {
                     try
-                    {*/
-                        await output.CopyToAsync(stream/*, 81920, source.Token*/);
-                        await stream.FlushAsync().ConfigureAwait(false);/*
+                    {
+                        await output.CopyToAsync(stream, 81920, source.Token);
+                        await stream.FlushAsync().ConfigureAwait(false);
                     } catch(System.Exception exc)
                     {
                         await Program.Log(new LogMessage(LogSeverity.Info, "Music", "Music stopped in " + guild.Name));
                         return;
                     }
-                }*/
+                }
             }
         }
         
