@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>NoireBot - A Discord Bot for fun</title>
+<link href="css/main.css" rel="stylesheet" type="text/css">
+<link href="css/tabs.css" rel="stylesheet" type="text/css">
+<link href='https://fonts.googleapis.com/css?family=Krona One' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css?family=Libre Franklin' rel='stylesheet'>
+<style>
+body {
+    font-family: 'Libre Franklin';
+}
+</style>
+</head>
+<body>
+
+<div class="topnav" id="myTopnav">
+	<a id="IndexButton" href="index.html" class="asd"><span style="width: 100px; font-weight: bold; font-size: 18px; font-family: Krona One; padding: 12px 16px">NoireBot</span></a>
+	<a style="-webkit-border-radius: 5px" id="mainButton" href="https://discordapp.com/oauth2/authorize?client_id=246933734010519552&scope=bot" target="_blank">Add @NoireBot</a>
+	<a href="#About">About</a>
+	<a href="rpgguide.html">RPG Guide</a>
+	<a href="shop.html">Shop</a>
+	<a href="commands.html">Commands</a>
+
+</div>
+
+<div style="margin-top: 80px">
+</div>
+
+<h1 style="text-align: center">Commands</h1>
+
+<hr width="80%">
+
+<div class="tab">
+  <button id="DefaultOpen" class="tablinks" onclick="openCommand(event, 'Default')">Default Commands</button>
+  <button class="tablinks" onclick="openCommand(event, 'Fun')">Fun</button>
+  <button class="tablinks" onclick="openCommand(event, 'Utility')">Utility</button>
+  <a class="tablinks" href="rpgguide.html">RPG</a>
+</div>
+
+<div id="Default" class="tabcontent">
+  <h3>Default Commands</h3>
+  <table width="100%">
+	<tr>
+		<th style="font-weight: bold;">Command</th>
+		<th style="font-weight: bold;">Description</th>
+		<th style="font-weight: bold;">Usage</th>
+		<th style="font-weight: bold;">Example</th>
+	</tr>
+	<tr>
+		<th>Noire</th>
+		<th>Sends a picture about Noire.</th>
+		<th>>noire</th>
+		<th>>noire</th>
+	</tr>
+	<tr>
+		<th>Help</th>
+		<th>Sends a link here.</th>
+		<th>>help</th>
+		<th>>help</th>
+	</tr>
+	<tr>
+		<th>Version</th>
+		<th>Sends back the current version of the bot with other statistics</th>
+		<th>>version</th>
+		<th>>version<br>>details<br>>v</th>
+	</tr>
+  </table>
+</div>
+
+<div id="Fun" class="tabcontent">
+  <h3>Fun</h3>
+  <table width="100%">
+	<tr>
+		<th style="font-weight: bold;">Command</th>
+		<th style="font-weight: bold;">Description</th>
+		<th style="font-weight: bold;">Usage</th>
+		<th style="font-weight: bold;">Example</th>
+	</tr>
+	<tr>
+		<th>Ping</th>
+		<th>Replies with a 'Pong'. Used mostly for checking if the bot is alive.</th>
+		<th>>ping</th>
+		<th>>ping</th>
+	</tr>
+	<tr>
+		<th>Choose</th>
+		<th>Helps you decide something. (You can add as many options as you want)</th>
+		<th>>choose [Option 1] | [Option 2] | ...</th>
+		<th>>choose Go running | Watch anime | Play games</th>
+	</tr>
+	<tr>
+		<th>Coinflip</th>
+		<th>Flips a coin and gives you back the result.</th>
+		<th>>coinflip</th>
+		<th>>coinflip</th>
+	</tr>
+	<tr>
+		<th>Roll</th>
+		<th>Roll a dice and givesyou back the result</th>
+		<th>>roll [Min]-[Max]</th>
+		<th>>roll<br>>roll 15<br>>roll 5-10</th>
+	</tr>
+	<tr>
+		<th>Poke</th>
+		<th>Poke someone. It will send him a message that you poked him in the channel.</th>
+		<th>>poke @User</th>
+		<th>>poke @Luminight</th>
+	</tr>
+	<tr>
+		<th>Rsp</th>
+		<th>Play Rock Paper Scissors against the bot.</th>
+		<th>>rps { rock | paper | scissors}</th>
+		<th>>rps rock <br>>ropasci p <br>>rockpaperscissors 3</th>
+	</tr>
+  </table>
+</div>
+
+<div id="Utility" class="tabcontent">
+  <h3>Utility</h3>
+  <table width="100%">
+	<tr>
+		<th style="font-weight: bold;">Command</th>
+		<th style="font-weight: bold;">Description</th>
+		<th style="font-weight: bold;">Usage</th>
+		<th style="font-weight: bold;">Example</th>
+	</tr>
+	<tr>
+		<th>Kick</th>
+		<th>Kicks a User from the server.</th>
+		<th>>kick @User</th>
+		<th>>kick @Luminight</th>
+	</tr>
+	<tr>
+		<th>Ban</th>
+		<th>Bans a User from the server.</th>
+		<th>>ban @User</th>
+		<th>>ban @Luminight</th>
+	</tr>
+	<tr>
+		<th>Prune</th>
+		<th>Deletes the given amount of message.</th>
+		<th>>prune [Message Count]<br>
+			>prune [Message Count] {Message}<br>
+			>prune [Message Count] {@User} {Message}<br>
+			>prune [Message Count] {@User} {Message}
+			</th>
+		<th>>prune 10<br>
+			>prune 10 @Luminight<br>
+			>prune 10 @Luminight Spam</th>
+	</tr>
+  </table>
+</div>
+
+<div id="RPG" class="tabcontent">
+  <h3>RPG</h3>
+  <table width="100%">
+	<tr>
+		<th style="font-weight: bold;">Command</th>
+		<th style="font-weight: bold;">Description</th>
+		<th style="font-weight: bold;">Usage</th>
+		<th style="font-weight: bold;">Example</th>
+	</tr>
+	<tr>
+		<th>Command</th>
+		<th>Description</th>
+		<th>Usage</th>
+		<th>Example</th>
+	</tr>
+  </table>
+</div>
+
+<script>
+function openCommand(evt, name) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(name).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+document.getElementById("DefaultOpen").click();
+
+</script>
+
+</body>
+</html>

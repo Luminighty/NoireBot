@@ -1,0 +1,1 @@
+{"Name":"Tatsumaki","desc":"","bg":"empty","overlay":"overlay","owned_backgrounds":[],"owned_overlays":[],"badges":[],"id":172002275412279296,"tag":8792,"xp":0,"remainingXp":0,"xpNeeded":100,"MessageCd":"0001-01-01T00:00:00","dailyCd":"0001-01-01T00:00:00","credit":0,"reputation":0,"prof_LastUpdated":"0001-01-01T00:00:00","LastRep":"0001-01-01T00:00:00","lvl":1}

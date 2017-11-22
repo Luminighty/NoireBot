@@ -12,6 +12,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace NoireBot
 {
@@ -23,13 +24,15 @@ namespace NoireBot
         public static int[] lastMemes = new int[20];
 		public static List<string> vofiNicks = new List<string>();
 		public static string help;
-        public Random rand;
+        public static Random rand;
         public static RPG rpg;
         public static ulong LumiID = 128182611376996352;
         public static ulong botID = 246933734010519552;
 		public static ulong noireServerID = 314878458348175361;
 		public static List<ulong> spamChannels = new List<ulong>();
         public static IAudioClient audClient;
+        public static List<UtilityCommands.Remind> reminders = new List<UtilityCommands.Remind>();
+		static bool DataLoaded = false;
 		/// <summary>
 		/// ../../
 		/// </summary>
@@ -43,7 +46,8 @@ namespace NoireBot
             {
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine(exc);
-                Console.ReadKey();
+				System.Threading.Thread.Sleep(10000);
+				Main(new string[0]);
             }
             }
 
@@ -103,17 +107,20 @@ namespace NoireBot
             // Login and connect to Discord.
             await client.LoginAsync(TokenType.Bot, token);
             await client.StartAsync();
-			LoadVofiNicks();
-			changeVofiNick();
 
             if(isAdmin)
             await Log(new LogMessage(LogSeverity.Info, "Control", "Admin Detected"));
+			if (!DataLoaded)
+			{
+				LoadDatas();
+				LoadVofiNicks();
+				DataLoaded = true;
+			}
+			changeVofiNick();
 
-            LoadDatas();
-
-            // add logger
-            // Log the invite URL on client ready
-            client.Ready += Client_Ready;
+			// add logger
+			// Log the invite URL on client ready
+			client.Ready += Client_Ready;
 
             client.MessageReceived += Client_MessageReceived;
 			client.MessageDeleted += Client_MessageDeleted;
@@ -121,6 +128,7 @@ namespace NoireBot
             SetGame();
             SaveData();
             CheckLock();
+            onSecondTick();
             await Task.Delay(-1);
         }
 		private IServiceProvider ConfigureServices()
@@ -146,10 +154,11 @@ namespace NoireBot
 
         private void LoadDatas()
         {
-            /*ProfileCommands.LoadProfileBuilders();
-            ProfileCommands.LoadProfiles();*/
+            ProfileCommands.LoadProfileBuilders();
+            ProfileCommands.LoadProfiles();
             LoadZippies();
             LoadHelp();
+            LoadReminders();
             rpg = new RPG();
         }
 
@@ -187,12 +196,30 @@ namespace NoireBot
 
         }
 
-        private async void SaveData()
-        {/*
+        public static async void SaveData(bool isCalled = false)
+        {
+			if(!isCalled)
             await Task.Delay(60000);
 			foreach (Profile prof in ProfileCommands.profiles)
-				prof.WriteFile();
-            SaveData();*/
+			{
+				try
+				{
+					prof.WriteFile();
+				} catch (Exception e)
+				{
+					string name = (prof == null) ? "null" : prof.Name;
+					await Log(LogSeverity.Error, "Profiles", "Couldn't save profile for " + name + "! Exception: " + e.Message);
+				}
+				if (isCalled)
+					Console.WriteLine(prof.ToString("\n"));
+			}
+			if (!isCalled)
+			{
+				SaveData();
+			} else
+			{
+				await Log(LogSeverity.Info, "Save", "Saved.");
+			}
         }
 
         private string WelcomeImage()
@@ -228,6 +255,25 @@ namespace NoireBot
 			reader.Dispose();
 
 		}
+
+        private async void onSecondTick()
+        {
+            //ReminderCheck
+            for(int i = 0; i<reminders.Count; i++)
+            {
+                if(reminders[i].time.CompareTo(DateTime.UtcNow) <= 0)
+                {
+                    var channel = await client.GetUser(reminders[i].user).GetOrCreateDMChannelAsync() as IMessageChannel;
+                    await channel.SendMessageAsync(":alarm_clock: **Reminder:**" + reminders[i].text + "! :alarm_clock:");
+                    
+                    File.Delete(sourcePath + "reminders/" + reminders[i].id + ".rem");
+                    reminders.RemoveAt(i);
+                }
+            }
+
+            await Task.Delay(1000);
+            onSecondTick();
+        }
 
 		private Dictionary<ulong, IUserMessage> ai_msgCopies = new Dictionary<ulong, IUserMessage>();
 
@@ -296,21 +342,21 @@ namespace NoireBot
 
 			}
 
-			/*
+			
             int index = ProfileCommands.CheckUser(arg.Author);
 			Profile p = ProfileCommands.profiles[index];
 			DateTime t = p.MessageCd;
-			if (DateTime.Compare(t.AddSeconds(10), DateTime.Now) > 0)
+			if (DateTime.Compare(t.AddSeconds(10), DateTime.UtcNow) > 0)
 			{
 				p.credit++;
 				int lvl = p.lvl;
-				p.xp += 3;
+				p.xp += rand.Next(1, 5);
 				if(lvl != p.lvl)
 				{
 					arg.Channel.SendMessageAsync("**Level Up!** " + arg.Author.Username + " is now **Lvl" + p.lvl + "**!");
 				}
-				p.MessageCd = DateTime.Now;
-			}*/
+				p.MessageCd = DateTime.UtcNow;
+			}
 			return Task.CompletedTask;
         }
         
@@ -390,6 +436,19 @@ namespace NoireBot
             reader.Close();
         }
 
+        public void LoadReminders()
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+            string[] files = Directory.GetFiles(sourcePath + "reminders/");
+            foreach(string file in files)
+            {
+                FileStream f = File.Open(file, FileMode.Open);
+                UtilityCommands.Remind remindme = formatter.Deserialize(f) as UtilityCommands.Remind;
+                reminders.Add(remindme);
+                f.Close();
+            }
+            Program.Log(LogSeverity.Info, "Reminders", "Reminders Loaded.");
+        }
 
     }
 }

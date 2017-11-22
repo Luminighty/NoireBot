@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>NoireBot - A Discord Bot for fun</title>
+<link href="css/main.css" rel="stylesheet" type="text/css">
+<link href="css/tabs.css" rel="stylesheet" type="text/css">
+<link href='https://fonts.googleapis.com/css?family=Krona One' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css?family=Libre Franklin' rel='stylesheet'>
+<style>
+body {
+    font-family: 'Libre Franklin';
+}
+</style>
+</head>
+<body>
+<div class="topnav" id="myTopnav">
+	<a id="IndexButton" href="index.html" class="asd"><span style="width: 100px; font-weight: bold; font-size: 18px; font-family: Krona One; padding: 12px 16px">NoireBot</span></a>
+	<a style="-webkit-border-radius: 5px" id="mainButton" href="https://discordapp.com/oauth2/authorize?client_id=246933734010519552&scope=bot" target="_blank">Add @NoireBot</a>
+	<a href="#About">About</a>
+	<a href="rpgguide.html">RPG Guide</a>
+	<a href="shop.html">Shop</a>
+	<a href="commands.html">Commands</a>
+
+</div>
+
+<div style="margin-top: 80px">
+</div>
+
+<div class="tab">
+	<button id="DefaultOpen" class="tablinks" onclick="openFilter(event, 'Backgrounds')">Backgrounds</button>
+	<button class="tablinks" onclick="openFilter(event, 'Overlay')">Overlay</button>
+</div>
+
+<div id="Backgrounds" class="tabcontent">
+	<h2>Usage: >p bg {Name}</h2>
+	<h3>Soon...</h3>
+	<img src="images/ShockedNoire.gif" width="70%">
+</div>
+
+<div id="Overlay" class="tabcontent">
+	<h2>Usage: >p overlay {Name}</h2>
+	<h3>Soon...</h3>
+	<img src="images/ShockedNoire.gif" width="70%">
+</div>
+
+<script>
+function openFilter(evt, filter) {
+    var i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    document.getElementById(filter).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+document.getElementById("DefaultOpen").click();
+
+</script>
+
+</body>
+</html>

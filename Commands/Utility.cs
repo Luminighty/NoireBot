@@ -7,6 +7,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace NoireBot
 {
@@ -94,5 +95,106 @@ namespace NoireBot
 				await ReplyAsync(user.Nickname + " was banned from the server.");
 			}
 		}
-	}
+
+
+        [Command("reminder")]
+        [Alias("remindme")]
+        public async Task Reminder([Remainder]string reminder = "")
+        {
+            if(string.IsNullOrEmpty(reminder))
+            {
+                await ReplyAsync("Usage: `>remindme {Reminder} in {D} days {H} hours {M} Minutes {S} Seconds`.\nExample:`>remindme to watch anime in 1 day`");
+                return;
+            }
+            string[] input = reminder.Split(' ');
+            string text = "";
+            DateTime time = DateTime.UtcNow;
+            bool hasIn = false;
+            for (int i = 0; i < input.Length; i++)
+            {
+                if(!hasIn && input[i].ToLower() != "in")
+                {
+                    text += " " + input[i];
+                } else
+                {
+                    if(!hasIn)
+                    {
+                        hasIn = true;
+                        continue;
+                    }
+                    switch(input[i].ToLower())
+                    {
+                        case "days":
+                        case "day":
+                        case "d":
+                            if (Int32.TryParse(input[i - 1], out int d))
+                                time = time.AddDays(d);
+                            break;
+                        case "hours":
+                        case "hour":
+                        case "h":
+                            if (Int32.TryParse(input[i - 1], out int h))
+                                time = time.AddHours(h);
+                            break;
+                        case "minutes":
+                        case "minute":
+                        case "min":
+                        case "m":
+                            if (Int32.TryParse(input[i - 1], out int m))
+                                time = time.AddMinutes(m);
+                            break;
+                        case "seconds":
+                        case "second":
+                        case "sec":
+                        case "s":
+                            if (Int32.TryParse(input[i - 1], out int s))
+                                time = time.AddSeconds(s);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            if(!hasIn)
+            { 
+                await ReplyAsync("Usage: `>remindme {Reminder} in {D} days {H} hours {M} Minutes {S} Seconds`.\nExample:`>remindme to watch anime in 1 day`");
+                return;
+            }
+
+            Remind remindme = new Remind(text, time, Context.User.Id, Context.Message.Id);
+            Program.reminders.Add(remindme);
+            BinaryFormatter formatter = new BinaryFormatter();
+            FileStream file = File.Create(Program.sourcePath + "reminders/" + Context.Message.Id + ".rem");
+            formatter.Serialize(file, remindme);
+            file.Close();
+            await ReplyAsync("**Got it**! I'll make sure to remind you as soon as possible when the time comes!");
+        }
+        
+		[Command("save")]
+		public async Task Save()
+		{
+			if (Context.User.Id != Program.LumiID)
+				return;
+			await Program.Log(LogSeverity.Info, "Save", "Saving on call!");
+			Program.SaveData(true);
+		}
+
+        [System.Serializable]
+        public class Remind
+        {
+            public string text;
+            public ulong user;
+            public DateTime time;
+            public ulong id;
+
+            public Remind(string _text, DateTime _time, ulong _user, ulong _id)
+            {
+                text = _text;
+                time = _time;
+                user = _user;
+                id = _id;
+            }
+        }
+
+    }
 }

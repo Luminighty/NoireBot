@@ -17,11 +17,33 @@ namespace NoireBot
 
 		Random rand = new Random();
 
+		[Command("invite")]
+		[Alias(new string[] {"inv" })]
+		public async Task Invite()
+		{
+			await ReplyAsync("**Website: <https://noirebot.neocities.org> \nInvite me: <https://discordapp.com/oauth2/authorize?client_id=246933734010519552&scope=bot&permissions=15989775> \nFan Server: <https://discordapp.com/invite/CTsQfvq>**");
+		}
+
 		[Command("details")]
-		[Alias(new string[] { "version", "v" })]
+		[Alias(new string[] { "version", "v", "info", "about" })]
 		public async Task Details()
 		{
 			ProfileCommands.SortProfiles();
+			var em = new EmbedBuilder();
+			em.Title = "NoireBot#8339";
+			em.Description = "v. 0.8";
+			em.AddInlineField("Servers", Program.client.Guilds.Count);
+			em.AddInlineField("Users", ProfileCommands.profiles.Count);
+			em.ThumbnailUrl = "https://noirebot.neocities.org/images/noire_3.jpg";
+			em.AddField("Website", "https://noirebot.neocities.org");
+			em.AddField("Invite", "https://noirebot.neocities.org/go.html?to=invite");
+			em.AddField("Fan Server", "https://noirebot.neocities.org/go.html?to=fan");
+			var footer = new EmbedFooterBuilder();
+			footer.Text = "Created by Luminight#3109";
+			em.Footer = footer;
+			em.Color = new Color(136, 78, 252);
+			await ReplyAsync("", false, em.Build());
+			/*
 			Program.LoadZippies();
 			int points = 0;
 			foreach (Profile prof in ProfileCommands.profiles)
@@ -38,11 +60,11 @@ namespace NoireBot
 				}
 			string text = "Noirebot is currently on version 1.3.3.8" + Environment.NewLine +
 				"There are " + zippyLine + ProfileCommands.profiles.Count + " profiles and the " + richest + " has " + ProfileCommands.profiles[0].credit + autism + " point." + Environment.NewLine +
-				"Alltogether we have " + points + autism + " points.";
-			await ReplyAsync(text);
+				"Altogether we have " + points + autism + " points.";
+			await ReplyAsync(text);*/
 		}
 
-		[Command("Help")]
+		[Command("help")]
 		public async Task Help()
 		{
 			string plusText = "";
@@ -215,17 +237,7 @@ namespace NoireBot
 			}
 
 			int sender = ProfileCommands.CheckUser(Context.User);
-
-			if (0 < ProfileCommands.profiles[sender].LastAutism.AddSeconds(5).CompareTo(DateTime.Now))
-			{
-				int sec = ProfileCommands.profiles[sender].LastAutism.AddSeconds(5).Subtract(DateTime.Now).Seconds;
-				string s = "";
-				if (sec > 1)
-					s = "s";
-				await channel.SendMessageAsync("Hold on! You're using delayed commands! Please wait " + sec.ToString() + " second" + s + " for your next >rep");
-				return;
-			}
-
+			
 			int pointUser = ProfileCommands.CheckUser(autist as IUser);
 
 			try
@@ -258,44 +270,74 @@ namespace NoireBot
 				await ReplyAsync("Usage: > >rep @User { **+ / -** }");
 				return;
 			}
-
-			int index = ProfileCommands.CheckUser(Context.User);
-
-			if (0 < ProfileCommands.profiles[index].LastRep.AddMinutes(1).CompareTo(DateTime.Now))
-			{
-				int sec = ProfileCommands.profiles[index].LastRep.AddMinutes(1).Subtract(DateTime.Now).Seconds;
-				string s = "";
-				if (sec > 1)
-					s = "s";
-				await ReplyAsync("Hold on! You're using delayed commands! Please wait " + sec.ToString() + " second" + s + " for your next >rep");
-				return;
-			}
-
-			int Rep = ProfileCommands.CheckUser(user);
-
-			if (ProfileCommands.profiles[Rep].id == ProfileCommands.profiles[index].id)
+			if(user.Id == Context.User.Id)
 			{
 				await ReplyAsync("You can't give rep to yourself!");
 				return;
 			}
 
-			if (text == "-")
+			int index = ProfileCommands.CheckUser(Context.User);
+			Console.WriteLine(ProfileCommands.profiles[index].LastRep.AddDays(1).CompareTo(DateTime.UtcNow));
+			Console.WriteLine(ProfileCommands.profiles[index].LastRep.ToShortDateString() + "; UTCNOW: " + DateTime.UtcNow.ToShortDateString());
+			if (0 < ProfileCommands.profiles[index].LastRep.AddDays(1).CompareTo(DateTime.UtcNow))
 			{
-				ProfileCommands.profiles[Rep].reputation--;
-				await ReplyAsync(Context.User.Username + " removed rep from " + ProfileCommands.profiles[Rep].Name + "!");
-				ProfileCommands.profiles[Rep].WriteFile();
-				ProfileCommands.profiles[index].LastRep = DateTime.Now;
-				return;
-			}
-			if (text == "+" || text == "")
-			{
-				ProfileCommands.profiles[Rep].reputation++;
-				await ReplyAsync(Context.User.Username + " gave rep to " + ProfileCommands.profiles[Rep].Name + "!");
-				ProfileCommands.profiles[Rep].WriteFile();
-				ProfileCommands.profiles[index].LastRep = DateTime.Now;
+				TimeSpan time = ProfileCommands.profiles[index].LastRep.AddDays(1).Subtract(DateTime.UtcNow);
+				string m = (time.Minutes > 1) ? "s" : "";
+				string h = (time.Hours > 1) ? "s" : "";
+				await ReplyAsync("**Hold on!** You can't give reputation for another **" + time.Hours + "** hour" + h + " and **" + time.Minutes + "** minute" + m + "!");
 				return;
 			}
 
+			int Rep = ProfileCommands.CheckUser(user);
+
+			if (text == "-")
+			{
+				ProfileCommands.profiles[Rep].reputation--;
+				await ReplyAsync(":thumbsdown: | **" + Context.User.Username + "** taken **reputation point** from " + user.Mention + "!");
+				ProfileCommands.profiles[Rep].WriteFile();
+				ProfileCommands.profiles[index].LastRep = DateTime.UtcNow;
+				return;
+			}
+			if (text == "+" || string.IsNullOrEmpty(text))
+			{
+				ProfileCommands.profiles[Rep].reputation++;
+				await ReplyAsync(":thumbsup: | **" + Context.User.Username + "** given **reputation point** to " + user.Mention + "!");
+				ProfileCommands.profiles[Rep].WriteFile();
+				ProfileCommands.profiles[index].LastRep = DateTime.UtcNow;
+				Console.WriteLine("NewRep: " + ProfileCommands.profiles[index].LastRep.ToShortDateString() + "; UTCNOW: " + DateTime.UtcNow.ToShortDateString());
+				return;
+			}
+
+		}
+
+		[Command("daily")]
+		[Alias(new string[] { "dailies" })]
+		public async Task DailyPoint(IGuildUser user = null)
+		{
+
+			Profile s = ProfileCommands.profiles[ProfileCommands.CheckUser(Context.User)];
+
+			if (0 < s.dailyCd.AddDays(1).CompareTo(DateTime.UtcNow))
+			{
+				TimeSpan time = s.dailyCd.AddDays(1).Subtract(DateTime.UtcNow);
+				string m = (time.Minutes > 1) ? "s" : "";
+				string h = (time.Hours > 1) ? "s" : "";
+				await ReplyAsync("**Hold on!** You can't get your dailies for another **" + time.Hours + "** hour" + h + " and **" + time.Minutes + "** minute" + m + "!");
+				return;
+			}
+			Random rnd = new Random();
+			int amount = (user == null || user.Id == Context.User.Id) ? 100 : rnd.Next(100, 200);
+			Profile p = (user == null || user.Id == Context.User.Id) ? s : ProfileCommands.profiles[ProfileCommands.GetProfile(Context.User.Id)];
+			p.credit += amount;
+			s.dailyCd = DateTime.UtcNow;
+			if (user != null && user.Id != Context.User.Id)
+			{
+				await ReplyAsync(":gift: | **" + Context.User.Username + "** given his **" + amount + "** of daily credits to " + user.Mention + "!");
+			}
+			else
+			{
+				await ReplyAsync(":moneybag: | You've got your **" + amount + "** of daily credits!");
+			}
 		}
 
 		[Command("support")]

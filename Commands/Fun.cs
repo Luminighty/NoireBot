@@ -19,6 +19,113 @@ namespace NoireBot
 			await ReplyAsync("Pong.");
 		}
 
+		[Command("8ball")]
+		public async Task ball([Remainder] string input = "")
+		{
+			if(string.IsNullOrEmpty(input))
+			{
+				await ReplyAsync(":8ball: | *Ask me anything, and I shall tell you ONLY the truth!*");
+				return;
+			}
+			string[] replies = new string[] {
+				"Yes!",	"Definitely.",	"Probably yes.",	"Most certainly.",	"Sure!",
+				"No",	"Probably no.",	"I don't think.",	"Nope.",			"Never!",
+				"What do you think?", "That's obvious.", "Ask me later."
+
+			};
+			await ReplyAsync(":8ball: | *" + replies[Program.rand.Next(0, replies.Length)] + "*");
+		}
+
+		[Command("slot")]
+		public async Task Slot(int bet = 100)
+		{
+			int id = ProfileCommands.CheckUser(Context.User);
+			Profile p = ProfileCommands.profiles[id];
+			if(bet < 1)
+			{
+				await ReplyAsync("You have to bet atleast 1 credit!");
+				return;
+			}
+			if(p.credit < bet)
+			{
+				await ReplyAsync("You don't have enough credits!");
+				return;
+			}
+			p.credit -= bet;
+
+			string[] icons = new string[]
+			{
+				":lemon:",
+				":banana:",
+				":100:",
+				":grapes:",
+				":cherries:",
+				":gem:",
+				":tangerine:",
+				":bell:",
+				":moneybag:"
+			};
+			int[] state = new int[] { Program.rand.Next(0, 9), Program.rand.Next(0, 9), Program.rand.Next(0, 9) };
+
+
+			IUserMessage slotMachine = null;
+			for (int i = 0; i < 6; i++)
+			{
+				for (int j = i / 2; j < 3; j++)
+					state[j] = (state[j] + 1 < 0) ? 8 : (state[j] + 1 > 8) ? 0 : state[j] + 1;
+				//Draw slot
+				string message = "**[----SLOTS----]**\n";
+				for (int j = -1; j < 2; j++) {
+					message += "I ";
+					for (int k = 0; k < 3; k++)
+						message += ":" + icons[(state[k] + j < 0) ? 8 : (state[k] +j > 8 ? 0 : state[k] + j)]; //Draw icons
+					message += ": I\n";
+				}
+				message += "**[----------------]**";
+				if (i < 5)
+				{
+					message += "\nIn progress...";
+				} else
+				{
+					int[] count = new int[9];
+					for (int j = 0; j < 9; j++)
+						count[j] = 0;
+					for (int j = 0; j < 3; j++)
+					{
+						count[state[j]]++;
+					}
+					int max = 0;
+					for (int j = 1; j < 9; j++)
+						if (count[j] > count[max])
+							max = j;
+					int multiplier = max % 3 + 1;
+					if (count[max] == 1)
+						multiplier = 0;
+					if (count[max] == 3)
+						multiplier *= 2;
+					int reward = bet * multiplier;
+					if (multiplier == 6)
+						message += "\n**JACKPOT!** ";
+					message += "\n**" + Context.User.Username + "** used **" + bet + "** credit" + ((bet > 1) ? "s" : "") + " and " + ((reward == 0) ? "lost everything!" : "won **" + reward + "** credit" + ((reward > 1) ? "s!" : "!"));
+					p.credit += reward;
+				}
+				if (slotMachine == null)
+				{
+					slotMachine = await ReplyAsync(message);
+				}
+				else
+				{
+					await slotMachine.ModifyAsync(new Action<MessageProperties>((MessageProperties u) =>
+					{
+						u.Content = message;
+					}));
+				}
+				await Task.Delay(1000);
+
+			}
+
+		}
+
 		[Command("choose")]
 		public async Task Choose([Remainder] string input = "")
 		{

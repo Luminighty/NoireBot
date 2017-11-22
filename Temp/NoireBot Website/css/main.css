@@ -1,0 +1,112 @@
+.topnav {
+	background-color: rgba(245, 235, 255, 0.85);
+	transparent: 50%;
+	position: fixed;
+	overflow: hidden;
+	top: 0;
+	left: 0;
+	width: 100%;
+}
+
+body {
+	
+}
+
+h1 {
+	color: #491f9e;
+}
+.topnav a {
+	float: right;
+	display: block;
+	color: #491f9e;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+	font-size: 17px;
+}
+#IndexButton {
+	float: left;
+	display: block;
+	color: #491f9e;
+	text-align: center;
+	padding: 0px 0px;
+	text-decoration: none;
+	width: 132px; 
+	font-weight: bold; 
+	font-size: 18px; 
+	font-family: Krona One;
+}
+
+.topnav span {
+	float: left;
+	display: block;
+	color: #491f9e;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+	font-size: 17px;
+}
+.topnav a:hover {
+	background-color: #bd8af7;
+	color: black;
+}
+.topnav a.active {
+    background-color: #4CAF50;
+    color: white;
+}
+#mainButton {
+	float: left;
+	background-color:#491f9e; 
+	color: #f2f2f2;
+}
+.container a:hover {
+	background-color: rgba(200, 150, 255, 0.3);
+}
+.container a {
+	margin: auto;
+	width: 40%;
+	border: 2px solid;
+	border-bottom-color: #491f9e;
+	display: inline-block;
+	background-color: transparent; 
+	color: #491f9e;
+	padding: 14px 16px;
+	text-align: center;
+	text-decoration: none;
+	font-weight: bold;
+}
+@media screen and (max-width: 1000px) {
+.container a {
+	padding: 14px 10px;
+	margin-bottom: 8px;
+	width: 100%;
+	max-width: 256px;
+}
+}
+.row h1 {
+	text-align: center;
+}
+.row a {
+	text-align: center;
+}
+.row {
+	margin-left: auto;
+	margin-right: auto;
+	padding: 20px;
+	width: 70%;
+	max-width: 400px;
+}
+@media screen and (max-width: 1000px) {
+.row {
+	margin: auto;
+	padding: 20px;
+	width: 100%;
+	max-width: 280px;
+}
+}
+.container {
+	margin: auto;
+	display:inline-block;
+	padding: 10px;
+	width: 100%;
+}

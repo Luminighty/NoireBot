@@ -10,6 +10,7 @@ using System.Net;
 using System.IO;
 using System.Drawing;
 using System.Runtime.Serialization.Formatters.Binary;
+using Newtonsoft.Json;
 
 namespace NoireBot
 {
@@ -32,13 +33,8 @@ namespace NoireBot
             if (user == null)
                 user = Context.User as IGuildUser;
             SortProfiles();
-            int id = GetProfile(user.Id);
-            if(id == -1)
-            {
-                id = profiles.Count;
-                profiles.Add(new Profile(user));
-            }
-            await Context.Channel.SendFileAsync(profiles[id].GeneratePicture(GetProfile(user.Id), user));
+            int id = CheckUser(user);
+            await Context.Channel.SendFileAsync(profiles[id].GeneratePicture(id, user));
         }
 
         #region background
@@ -103,18 +99,19 @@ namespace NoireBot
         }
 
 
-        #endregion
+		#endregion
 
-        #endregion
-        
+		#endregion
 
-        /// <summary>
-        /// Checks if the user exists in the list
-        /// If not, it generates it's profile
-        /// </summary>
-        /// <param name="user"></param>
-        /// <returns>User index</returns>
-        public static int CheckUser(IUser user)
+		#region Methods
+
+		/// <summary>
+		/// Checks if the user exists in the list
+		/// If not, it generates it's profile
+		/// </summary>
+		/// <param name="user"></param>
+		/// <returns>User index</returns>
+		public static int CheckUser(IUser user)
         {
             int id = GetProfile(user.Id);
 			
@@ -132,13 +129,18 @@ namespace NoireBot
 
             Program.Log(new LogMessage(LogSeverity.Debug, "Profiles", "Profiles Update Started!"));
 
-            string[] folders = Directory.GetDirectories("../../Profiles/");
+            string[] folders = Directory.GetDirectories("../../Profiles/Users/");
 
             foreach (string folder in folders)
             {
+
+
 				FileStream file = File.Open(folder + "/main.profile", FileMode.Open);
+				StreamReader reader = new StreamReader(file);
+				Profile newProf = JsonConvert.DeserializeObject<Profile>(reader.ReadToEnd());
+				/*
 				BinaryFormatter formatter = new BinaryFormatter();
-				Profile newProf = ((Profile)formatter.Deserialize(file));
+				Profile newProf = ((Profile)formatter.Deserialize(file));*/
                 profiles.Add(newProf);
 				file.Close();
             }
@@ -158,7 +160,7 @@ namespace NoireBot
 
         public static bool IsExists(ulong id)
         {
-            return Directory.Exists("../../Profiles/" + id);
+            return Directory.Exists("../../Profiles/Users/" + id);
         }
 
         public static void SortProfiles()
@@ -200,11 +202,17 @@ namespace NoireBot
 
         }
 
-    }
+		#endregion
+
+	}
 
 	[System.Serializable]
     public class Profile
     {
+		public Profile()
+		{
+
+		}
         public Profile(ulong _id = 0)
         {
             this.id = _id;
@@ -212,8 +220,8 @@ namespace NoireBot
             this.desc = "";
 			this.credit = 0;
 			this.xp = 0;
-			this.bg = "Empty";
-            this.overlay = "PlainBlack";
+			this.bg = "empty";
+            this.overlay = "overlay";
             this.owned_overlays = new List<string>();
             this.owned_backgrounds = new List<string>();
             this.rand = new Random();
@@ -222,7 +230,7 @@ namespace NoireBot
         public Profile(IUser user, bool iswritefile = true)
 		{
 			Program.Log(new LogMessage(LogSeverity.Debug, "Profiles", "New Profile(" + user.Username +")"));
-			if (Directory.Exists("../../Profiles/" + user.Id) && File.Exists("../../Profiles/" + user.Id + "/main.profile"))
+			if (Directory.Exists("../../Profiles/Users/" + user.Id) && File.Exists("../../Profiles/Users/" + user.Id + "/main.profile"))
 			{
 				Program.Log(new LogMessage(LogSeverity.Debug, "Profiles", "Folder already exists! (" + user.Id + ")"));
 				return;
@@ -232,8 +240,8 @@ namespace NoireBot
             this.desc = "";
 			this.credit = 0;
 			this.xp = 0;
-			this.bg = "Empty";
-            this.overlay = "PlainBlack";
+			this.bg = "empty";
+            this.overlay = "overlay";
             this.owned_overlays = new List<string>();
             this.owned_backgrounds = new List<string>();
             this.rand = new Random();
@@ -295,7 +303,6 @@ namespace NoireBot
         public int reputation;
 
         public DateTime prof_LastUpdated;
-        public DateTime LastAutism;
         public DateTime LastRep;
 
         private Random rand;
@@ -304,42 +311,57 @@ namespace NoireBot
 		#region Methods
 		public string GeneratePicture(int rank, IUser user)
         {
-            if (this.bg == "default")
-                this.bg = "Empty";
-            if (this.overlay == "Default_Black")
-                this.overlay = "PlainBlack";
+            if (string.IsNullOrEmpty(this.bg))
+                this.bg = "empty";
+            if (string.IsNullOrEmpty(this.overlay))
+                this.overlay = "overlay";
             System.Drawing.Image avatar;
             using (WebClient client = new WebClient())
             {
                 byte[] im = client.DownloadData(new Uri(user.GetAvatarUrl()));
                 avatar = System.Drawing.Image.FromStream(new MemoryStream(im));
             }
-            avatar = (System.Drawing.Image)(new Bitmap(avatar, 128, 128));
-            Bitmap bitmap = (Bitmap)System.Drawing.Image.FromFile("../../Customizations/Backgrounds/" + this.bg + ".png");
+            avatar = (System.Drawing.Image)(new Bitmap(avatar, 96, 96));
+            Bitmap bitmap = (Bitmap)System.Drawing.Image.FromFile("../../Profiles/Customizations/Backgrounds/" + this.bg + ".png");
             using (Graphics graphics = Graphics.FromImage(bitmap))
             {
-                using (Font cooper = new Font("Cooper Std Black", 15))
-                {
-                    graphics.DrawImage(System.Drawing.Image.FromFile("../../Customizations/Overlays/" + this.overlay + ".png"), new PointF(0F, 0F));
-                    RectangleF namePoint = new RectangleF(13F, 17F, 224F, 31F);
-                    PointF AvatarPoint = new PointF(77F, 68F);
-                    RectangleF AutPoints = new RectangleF(24F, 230F, 73F, 40F);
-                    RectangleF descRect = new RectangleF(13F, 295F, 226F, 85F);
-                    RectangleF Rank = new RectangleF(185, 185, 45, 30);
-                    RectangleF Rep = new RectangleF(185, 235, 45, 30);
-                    StringFormat format = new StringFormat
+                using (Font cooper14px = new Font("Cambria", 14))
+				{
+					Brush brush = Brushes.White;
+					Font cooper20px = new Font("Cambria", 20);
+					Font cooper24px = new Font("Cambria", 24);
+					Font cooper12px = new Font("Cambria", 12);
+
+					graphics.DrawImage(System.Drawing.Image.FromFile("../../Profiles/Customizations/Overlays/" + this.overlay + ".png"), new PointF(0F, 0F));
+                    RectangleF namePoint = new RectangleF(118F, 115F, 170F, 28F);
+					RectangleF AvatarPoint = new RectangleF(17F, 79F, 96,96);
+
+                    RectangleF descRect = new RectangleF(15, 280, 255, 60);
+
+					RectangleF Rank = new RectangleF(138, 185, 71, 16);
+					RectangleF credits = new RectangleF(138, 203, 71, 16);
+					RectangleF xp = new RectangleF(138, 222, 71, 16);
+					
+					RectangleF level = new RectangleF(15, 205, 56, 21);
+					RectangleF Rep = new RectangleF(77, 205, 56, 21);
+					StringFormat format = new StringFormat
                     {
-                        Alignment = StringAlignment.Center,
-                        LineAlignment = StringAlignment.Center
+                        Alignment = StringAlignment.Near,
+                        LineAlignment = StringAlignment.Near
                     };
                     graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-                    Font SmallCooper = new Font("Cooper Std Black", 11);
-                    graphics.DrawString(this.desc, SmallCooper, Brushes.Black, descRect);
-                    graphics.DrawString(this.credit.ToString(), cooper, Brushes.Black, AutPoints, format);
-                    graphics.DrawString(this.Name, cooper, Brushes.Black, namePoint, format);
-                    format.Alignment = StringAlignment.Far;
-                    graphics.DrawString(this.reputation.ToString(), cooper, Brushes.Black, Rep, format);
-                    graphics.DrawString((rank + 1).ToString(), cooper, Brushes.Black, Rank, format);
+                    graphics.DrawString(desc, cooper12px, brush, descRect);
+
+					graphics.DrawString((rank+1) + "#".ToString(), cooper14px, brush, Rank, format);
+					graphics.DrawString(credit.ToString(), cooper14px, brush, credits, format);
+					graphics.DrawString(this.xp.ToString(), cooper14px, brush, xp, format);
+
+					graphics.DrawString(Name, cooper24px, brush, namePoint, format);
+
+                    format.Alignment = StringAlignment.Center;
+                    graphics.DrawString(reputation.ToString(), cooper20px, brush, Rep, format);
+                    graphics.DrawString(lvl.ToString(), cooper20px, brush, level, format);
+
                     graphics.DrawImage(avatar, AvatarPoint);
                 }
             }
@@ -496,13 +518,14 @@ namespace NoireBot
 
 			writingIds.Add(this.id);
 			alreadyWriting = true;
-            if (!Directory.Exists("../../Profiles/" + this.id))
-                Directory.CreateDirectory("../../Profiles/" + this.id);
-            try
+            if (!Directory.Exists("../../Profiles/Users/" + this.id))
+                Directory.CreateDirectory("../../Profiles/Users/" + this.id);
+
+			try
 			{
-				FileStream file = File.Create("../../Profiles/" + this.id + "/main.profile");
-				/*StreamWriter writer = new StreamWriter(file);
-                writer.WriteLine(this.Name);
+				FileStream file = File.Create("../../Profiles/Users/" + this.id + "/main.profile");
+				StreamWriter writer = new StreamWriter(file);
+				/*writer.WriteLine(this.Name);
                 writer.WriteLine(this.id);
                 writer.WriteLine(this.tag);
                 writer.WriteLine(this.desc);
@@ -519,9 +542,12 @@ namespace NoireBot
                     writer.WriteLine(ov);
                 writer.WriteLine("}");
                 writer.Close();*/
-
+				string json = JsonConvert.SerializeObject(this, Formatting.None);
+				writer.WriteLine(json);
+				writer.Close();
+				/*
 				BinaryFormatter formatter = new BinaryFormatter();
-				formatter.Serialize(file, this);
+				formatter.Serialize(file, this);*/
 
                 file.Close();
 			} catch(Exception e)
@@ -541,6 +567,30 @@ namespace NoireBot
 					break;
 				}
 			badges.Add(badge);
+		}
+
+		public string ToString(string separator = "; ")
+		{
+			string a = "Profile (" + Name + "#" + tag + "): ";
+			a += "{id:\"" + id + "\"" + separator;
+			a += "desc:\"" + desc + "\"" + separator;
+			a += "bg:\"" + bg + "\"" + separator;
+			a += "overlay:\"" + overlay + "\"" + separator;
+			a += "credits:\"" + credit + "\"" + separator;
+			a += "reputation:\"" + reputation + "\"" + separator;
+			a += "xp:\"" + xp + " (" + remainingXp + "/" + xpNeeded + ") Lvl." + lvl + "\"" + separator;
+			a += "LastDaily:\"" + dailyCd.ToShortDateString() + " " + dailyCd.ToShortTimeString() + "\"" + separator;
+			a += "LastRep:\"" + LastRep.ToShortDateString() + " " + LastRep.ToShortTimeString() + "\"" + separator;
+			a += "}";
+			return a;
+		}
+		public string ToShortString(string separator = "; ")
+		{
+
+			string a = "Profile (" + Name + "#" + tag + "): ";
+			a += "{id:\"" + id + "\"" + separator;
+			a += "}";
+			return a;
 		}
 
 		#endregion
@@ -568,7 +618,5 @@ namespace NoireBot
 		}
 
 	}
-
-	
 
 }
